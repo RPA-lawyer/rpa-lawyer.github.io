@@ -13,6 +13,10 @@
         .navbar-brand { font-weight: 600; }
         .table-tools td { vertical-align: middle; }
         .rental-badge { font-size: 0.75rem; }
+        .btn-edit { margin-right: 5px; }
+        .repair-reason { font-size: 0.9rem; color: #6c757d; }
+        .btn-delete-rental { color: #dc3545; background: none; border: none; padding: 0 5px; }
+        .btn-delete-rental:hover { color: #a71d2a; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -31,6 +35,8 @@
                 <li class="nav-item"><a class="nav-link" href="#" data-page="clients">Клиенты</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="newRental">Выдать</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="returnRental">Вернуть</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" data-page="repair">🔧 ТО</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" data-page="history">📜 История</a></li>
             </ul>
         </div>
     </div>
@@ -107,6 +113,8 @@
                 case 'clients':     renderClients(); break;
                 case 'newRental':   renderNewRental(); break;
                 case 'returnRental': renderReturnRental(); break;
+                case 'repair':      renderRepair(); break;
+                case 'history':     renderHistory(); break;
                 default: renderDashboard();
             }
         }
@@ -187,7 +195,7 @@
             </div>
             <div class="table-responsive">
             <table class="table table-hover table-tools">
-                <thead><tr><th>Инв. №</th><th>Категория</th><th>Модель</th><th>Цена/сутки</th><th>Залог</th><th>Статус</th><th></th></tr></thead>
+                <thead><tr><th>Инв. №</th><th>Категория</th><th>Модель</th><th>Цена/сутки</th><th>Залог</th><th>Статус</th><th>Действия</th></tr></thead>
                 <tbody>
             `;
             if (tools.length === 0) {
@@ -202,7 +210,10 @@
                         <td>${t.pricePerDay || 0} ₽</td>
                         <td>${t.deposit || 0} ₽</td>
                         <td><span class="badge bg-${getStatusColor(t.status)} rental-badge">${t.status || '—'}</span></td>
-                        <td><button class="btn btn-sm btn-outline-danger" onclick="window._deleteTool('${t.id}')">✕</button></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-edit" onclick="window._editTool('${t.id}')">✎</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="window._deleteTool('${t.id}')">✕</button>
+                        </td>
                     </tr>
                     `;
                 });
@@ -220,7 +231,26 @@
                 <div class="mb-3"><label class="form-label">Модель</label><input id="fModel" class="form-control" required /></div>
                 <div class="mb-3"><label class="form-label">Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" required /></div>
                 <div class="mb-3"><label class="form-label">Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" required /></div>
+                <input type="hidden" id="fEditId" value="" />
                 <button type="submit" class="btn btn-success">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._editTool = function(id) {
+            const tool = getToolById(id);
+            if (!tool) return;
+            render(`
+            <h1>Редактировать инструмент</h1>
+            <form onsubmit="window._saveTool(event)">
+                <div class="mb-3"><label class="form-label">Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventoryNumber || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Категория</label><input id="fCat" class="form-control" value="${tool.category || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Модель</label><input id="fModel" class="form-control" value="${tool.model || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.pricePerDay || 0}" required /></div>
+                <div class="mb-3"><label class="form-label">Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" value="${tool.deposit || 0}" required /></div>
+                <input type="hidden" id="fEditId" value="${id}" />
+                <button type="submit" class="btn btn-success">Обновить</button>
                 <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
             </form>
             `);
@@ -228,16 +258,21 @@
 
         window._saveTool = function(e) {
             e.preventDefault();
-            const tool = {
-                id: genId(),
+            const id = document.getElementById('fEditId').value;
+            const data = {
                 inventoryNumber: document.getElementById('fInv').value.trim(),
                 category: document.getElementById('fCat').value.trim(),
                 model: document.getElementById('fModel').value.trim(),
                 pricePerDay: parseFloat(document.getElementById('fPrice').value) || 0,
                 deposit: parseFloat(document.getElementById('fDeposit').value) || 0,
-                status: 'в наличии'
             };
-            tools.push(tool);
+            if (id) {
+                const tool = getToolById(id);
+                if (tool) Object.assign(tool, data);
+            } else {
+                const tool = { id: genId(), ...data, status: 'в наличии', repairReason: '', repairDate: null };
+                tools.push(tool);
+            }
             saveAll();
             navigate('tools');
         };
@@ -258,11 +293,11 @@
             </div>
             <div class="table-responsive">
             <table class="table table-hover">
-                <thead><tr><th>Имя</th><th>Телефон</th><th>Email</th><th>Аренд</th></tr></thead>
+                <thead><tr><th>Имя</th><th>Телефон</th><th>Email</th><th>Аренд</th><th>Действия</th></tr></thead>
                 <tbody>
             `;
             if (clients.length === 0) {
-                html += `<tr><td colspan="4" class="text-center text-muted">Нет клиентов</td></tr>`;
+                html += `<tr><td colspan="5" class="text-center text-muted">Нет клиентов</td></tr>`;
             } else {
                 clients.forEach(c => {
                     const count = rentals.filter(r => r.clientId === c.id).length;
@@ -272,6 +307,10 @@
                         <td>${c.phone || '—'}</td>
                         <td>${c.email || '—'}</td>
                         <td>${count}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-edit" onclick="window._editClient('${c.id}')">✎</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="window._deleteClient('${c.id}')">✕</button>
+                        </td>
                     </tr>
                     `;
                 });
@@ -287,7 +326,24 @@
                 <div class="mb-3"><label class="form-label">ФИО / Организация</label><input id="fName" class="form-control" required /></div>
                 <div class="mb-3"><label class="form-label">Телефон</label><input id="fPhone" class="form-control" required /></div>
                 <div class="mb-3"><label class="form-label">Email</label><input id="fEmail" class="form-control" /></div>
+                <input type="hidden" id="fEditClientId" value="" />
                 <button type="submit" class="btn btn-success">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._editClient = function(id) {
+            const client = getClientById(id);
+            if (!client) return;
+            render(`
+            <h1>Редактировать клиента</h1>
+            <form onsubmit="window._saveClient(event)">
+                <div class="mb-3"><label class="form-label">ФИО / Организация</label><input id="fName" class="form-control" value="${client.name || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Телефон</label><input id="fPhone" class="form-control" value="${client.phone || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Email</label><input id="fEmail" class="form-control" value="${client.email || ''}" /></div>
+                <input type="hidden" id="fEditClientId" value="${id}" />
+                <button type="submit" class="btn btn-success">Обновить</button>
                 <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
             </form>
             `);
@@ -295,13 +351,30 @@
 
         window._saveClient = function(e) {
             e.preventDefault();
-            const client = {
-                id: genId(),
+            const id = document.getElementById('fEditClientId').value;
+            const data = {
                 name: document.getElementById('fName').value.trim(),
                 phone: document.getElementById('fPhone').value.trim(),
                 email: document.getElementById('fEmail').value.trim()
             };
-            clients.push(client);
+            if (id) {
+                const client = getClientById(id);
+                if (client) Object.assign(client, data);
+            } else {
+                clients.push({ id: genId(), ...data });
+            }
+            saveAll();
+            navigate('clients');
+        };
+
+        window._deleteClient = function(id) {
+            if (!confirm('Удалить клиента?')) return;
+            const hasActive = rentals.some(r => r.clientId === id && r.status === 'активна');
+            if (hasActive) {
+                alert('Нельзя удалить клиента с активной арендой');
+                return;
+            }
+            clients = clients.filter(c => c.id !== id);
             saveAll();
             navigate('clients');
         };
@@ -373,7 +446,8 @@
                 pricePerDay: tool.pricePerDay,
                 totalCost: tool.pricePerDay * days,
                 deposit: tool.deposit,
-                status: 'активна'
+                status: 'активна',
+                returnCondition: ''
             };
 
             tool.status = 'в аренде';
@@ -382,7 +456,7 @@
             navigate('dashboard');
         };
 
-        // ---------- ВЕРНУТЬ ----------
+        // ---------- ВОЗВРАТ ----------
         function renderReturnRental() {
             const active = rentals.filter(r => r.status === 'активна');
             let opts = active.map(r => {
@@ -398,7 +472,7 @@
             ${active.length === 0
                 ? '<div class="alert alert-info">Нет активных аренд.</div>'
                 : `
-            <form onsubmit="window._saveReturn(event)">
+            <form onsubmit="return false;">
                 <div class="mb-3">
                     <label class="form-label">Активная аренда</label>
                     <select id="retRental" class="form-select" required>
@@ -407,7 +481,19 @@
                     </select>
                 </div>
                 <div class="mb-3"><label class="form-label">Фактическая дата возврата</label><input id="retDate" type="date" class="form-control" value="${today}" required /></div>
-                <button type="submit" class="btn btn-warning">Принять возврат</button>
+                <div class="mb-3">
+                    <label class="form-label">Состояние инструмента</label>
+                    <select id="retCondition" class="form-select">
+                        <option value="Отличное">Отличное</option>
+                        <option value="Хорошее" selected>Хорошее</option>
+                        <option value="Требует ремонта">Требует ремонта</option>
+                        <option value="Неисправен">Неисправен</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-success" onclick="window._returnRental(false)">Принять возврат</button>
+                    <button type="button" class="btn btn-warning" onclick="window._returnRental(true)">Отправить на ТО</button>
+                </div>
             </form>
             `}
             <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>
@@ -415,10 +501,10 @@
             render(html);
         }
 
-        window._saveReturn = function(e) {
-            e.preventDefault();
+        window._returnRental = function(sendToRepair) {
             const rentalId = document.getElementById('retRental').value;
             const actualReturn = document.getElementById('retDate').value;
+            const condition = document.getElementById('retCondition') ? document.getElementById('retCondition').value : 'Хорошее';
             if (!rentalId) { alert('Выберите аренду'); return; }
 
             const rental = rentals.find(r => r.id === rentalId);
@@ -432,12 +518,153 @@
             }
             rental.actualReturn = actualReturn;
             rental.status = 'закрыта';
+            rental.returnCondition = condition;
 
             const tool = getToolById(rental.toolId);
-            if (tool) tool.status = 'в наличии';
+            if (tool) {
+                if (sendToRepair) {
+                    tool.status = 'на обслуживании';
+                    tool.repairReason = condition;
+                    tool.repairDate = actualReturn;
+                } else {
+                    tool.status = 'в наличии';
+                    tool.repairReason = '';
+                    tool.repairDate = null;
+                }
+            }
 
             saveAll();
             navigate('dashboard');
+        };
+
+        // ---------- ТО ----------
+        function renderRepair() {
+            const repairTools = tools.filter(t => t.status === 'на обслуживании');
+            let html = `
+            <h1>🔧 Инструменты на ТО</h1>
+            ${repairTools.length === 0
+                ? '<div class="alert alert-info">Нет инструментов на ТО.</div>'
+                : `
+            <div class="table-responsive">
+            <table class="table table-hover">
+                <thead><tr><th>Инв. №</th><th>Модель</th><th>Причина</th><th>Дата отправки</th><th>Действие</th></tr></thead>
+                <tbody>
+            `}
+            `;
+            repairTools.forEach(t => {
+                html += `
+                <tr>
+                    <td>${t.inventoryNumber || '—'}</td>
+                    <td>${t.model || '—'}</td>
+                    <td>${t.repairReason || '—'}</td>
+                    <td>${formatDate(t.repairDate)}</td>
+                    <td><button class="btn btn-sm btn-success" onclick="window._returnFromRepair('${t.id}')">Вернуть с ТО</button></td>
+                </tr>
+                `;
+            });
+            if (repairTools.length > 0) {
+                html += `</tbody></table></div>`;
+            }
+            render(html);
+        }
+
+        window._returnFromRepair = function(toolId) {
+            if (!confirm('Вернуть инструмент с ТО в наличие?')) return;
+            const tool = getToolById(toolId);
+            if (tool) {
+                tool.status = 'в наличии';
+                tool.repairReason = '';
+                tool.repairDate = null;
+                saveAll();
+                navigate('repair');
+            }
+        };
+
+        // ---------- ИСТОРИЯ АРЕНД (с удалением) ----------
+        function renderHistory() {
+            // Фильтр по статусу
+            const filter = document.getElementById('historyFilter') ? document.getElementById('historyFilter').value : 'all';
+            let filtered = rentals;
+            if (filter === 'active') filtered = rentals.filter(r => r.status === 'активна');
+            else if (filter === 'closed') filtered = rentals.filter(r => r.status === 'закрыта');
+
+            // Сортировка по убыванию даты создания (по id, так как id содержит время)
+            const sorted = [...filtered].sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+
+            let html = `
+            <h1>📜 История аренд</h1>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <select id="historyFilter" class="form-select" onchange="renderHistory()">
+                        <option value="all" ${filter === 'all' ? 'selected' : ''}>Все</option>
+                        <option value="active" ${filter === 'active' ? 'selected' : ''}>Активные</option>
+                        <option value="closed" ${filter === 'closed' ? 'selected' : ''}>Закрытые</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead><tr>
+                    <th>№</th>
+                    <th>Клиент</th>
+                    <th>Инструмент</th>
+                    <th>Выдача</th>
+                    <th>План возврат</th>
+                    <th>Факт возврат</th>
+                    <th>Сумма</th>
+                    <th>Состояние</th>
+                    <th>Статус</th>
+                    <th>Действие</th>
+                </tr></thead>
+                <tbody>
+            `;
+            if (sorted.length === 0) {
+                html += `<tr><td colspan="10" class="text-center text-muted">Нет записей</td></tr>`;
+            } else {
+                sorted.forEach(r => {
+                    const client = getClientById(r.clientId);
+                    const tool = getToolById(r.toolId);
+                    const canDelete = r.status !== 'активна'; // можно удалить только закрытые
+                    html += `
+                    <tr>
+                        <td>${r.rentalNumber || '—'}</td>
+                        <td>${client ? client.name : 'Удалён'}</td>
+                        <td>${tool ? tool.model : 'Удалён'}</td>
+                        <td>${formatDate(r.issueDate)}</td>
+                        <td>${formatDate(r.plannedReturn)}</td>
+                        <td>${formatDate(r.actualReturn)}</td>
+                        <td>${r.totalCost || 0} ₽</td>
+                        <td>${r.returnCondition || '—'}</td>
+                        <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
+                        <td>
+                            ${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="window._deleteRental('${r.id}')">🗑</button>` : '<span class="text-muted">—</span>'}
+                        </td>
+                    </tr>
+                    `;
+                });
+            }
+            html += `</tbody></table></div>`;
+            render(html);
+        }
+
+        // Удаление аренды
+        window._deleteRental = function(rentalId) {
+            if (!confirm('Удалить эту аренду? Это действие необратимо.')) return;
+            const rental = rentals.find(r => r.id === rentalId);
+            if (!rental) return;
+            if (rental.status === 'активна') {
+                alert('Нельзя удалить активную аренду. Сначала верните инструмент.');
+                return;
+            }
+            // Если аренда закрыта, удаляем её. Инструмент уже должен быть в наличии, но на всякий случай проверим и вернём в наличие, если это не так.
+            const tool = getToolById(rental.toolId);
+            if (tool && tool.status === 'в аренде') {
+                // если по ошибке инструмент остался в аренде, исправляем
+                tool.status = 'в наличии';
+            }
+            rentals = rentals.filter(r => r.id !== rentalId);
+            saveAll();
+            renderHistory(); // обновляем страницу истории
         };
 
         // ----- СТАРТ -----
