@@ -14,15 +14,16 @@
         .table-tools td { vertical-align: middle; }
         .rental-badge { font-size: 0.75rem; }
         .btn-edit { margin-right: 5px; }
-        .repair-reason { font-size: 0.9rem; color: #6c757d; }
         .btn-delete-rental { color: #dc3545; background: none; border: none; padding: 0 5px; }
         .btn-delete-rental:hover { color: #a71d2a; text-decoration: underline; }
+        .login-container { max-width: 400px; margin: 50px auto; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <!-- НАВИГАЦИЯ -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
     <div class="container">
         <span class="navbar-brand" style="cursor:default;">СК Квадрант</span>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -38,39 +39,72 @@
                 <li class="nav-item"><a class="nav-link" href="#" data-page="repair">🔧 ТО</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="history">📜 История</a></li>
             </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn" onclick="logout()">Выйти</a></li>
+            </ul>
         </div>
     </div>
 </nav>
 
 <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
-<div class="container" id="app"></div>
+<div class="container" id="app">
+    <!-- Страница входа (показывается по умолчанию) -->
+    <div id="loginPage" class="login-container">
+        <h2 class="text-center mb-4">Вход в систему</h2>
+        <form onsubmit="login(event)">
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" id="loginEmail" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Пароль</label>
+                <input type="password" id="loginPassword" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Войти</button>
+            <hr />
+            <p class="text-center text-muted small">Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрируйтесь</a></p>
+        </form>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
-</script>
+    <!-- Форма регистрации (скрыта по умолчанию) -->
+    <div id="registerPage" class="login-container hidden">
+        <h2 class="text-center mb-4">Регистрация</h2>
+        <form onsubmit="register(event)">
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" id="regEmail" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Пароль (минимум 6 символов)</label>
+                <input type="password" id="regPassword" class="form-control" required minlength="6" />
+            </div>
+            <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
+            <hr />
+            <p class="text-center text-muted small">Уже есть аккаунт? <a href="#" onclick="showLogin()">Войдите</a></p>
+        </form>
+    </div>
+
+    <!-- Основной контент (скрыт до входа) -->
+    <div id="mainApp" class="hidden"></div>
+</div>
+
+<!-- ПОДКЛЮЧАЕМ SUPABASE JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     (function() {
         'use strict';
 
-        // ----- ХРАНИЛИЩЕ (localStorage) -----
-        function getData(key, defaultVal) {
-            try {
-                const raw = localStorage.getItem(key);
-                return raw ? JSON.parse(raw) : defaultVal;
-            } catch (_) { return defaultVal; }
-        }
-        function setData(key, val) {
-            localStorage.setItem(key, JSON.stringify(val));
+        // ============================================================
+        // ⚠️ ВСТАВЬТЕ СВОИ ДАННЫЕ ИЗ НАСТРОЕК SUPABASE (Settings → API)
+        // ============================================================
+        const SUPABASE_URL = 'https://ВАШ_ПРОЕКТ.supabase.co';    // ← сюда ваш Project URL
+        const SUPABASE_ANON_KEY = 'eyJ...';                      // ← сюда ваш anon public ключ
+
+        if (SUPABASE_URL === 'https://ВАШ_ПРОЕКТ.supabase.co' || SUPABASE_ANON_KEY === 'eyJ...') {
+            alert('⚠️ Сначала вставьте свои SUPABASE_URL и SUPABASE_ANON_KEY в код!');
         }
 
-        let tools   = getData('tools', []);
-        let clients = getData('clients', []);
-        let rentals = getData('rentals', []);
-
-        function saveAll() {
-            setData('tools', tools);
-            setData('clients', clients);
-            setData('rentals', rentals);
-        }
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ -----
         function genId() {
@@ -95,12 +129,41 @@
             return d.toLocaleDateString('ru-RU');
         }
 
-        function getToolById(id) { return tools.find(t => t.id === id); }
-        function getClientById(id) { return clients.find(c => c.id === id); }
-
         function todayStr() {
             return new Date().toISOString().split('T')[0];
         }
+
+        // ----- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ДАННЫХ -----
+        let tools = [];
+        let clients = [];
+        let rentals = [];
+
+        // ----- ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ ИЗ SUPABASE -----
+        async function loadTools() {
+            const { data, error } = await supabase.from('tools').select('*');
+            if (error) { console.error('Ошибка загрузки инструментов:', error); return []; }
+            return data || [];
+        }
+
+        async function loadClients() {
+            const { data, error } = await supabase.from('clients').select('*');
+            if (error) { console.error('Ошибка загрузки клиентов:', error); return []; }
+            return data || [];
+        }
+
+        async function loadRentals() {
+            const { data, error } = await supabase.from('rentals').select('*');
+            if (error) { console.error('Ошибка загрузки аренд:', error); return []; }
+            return data || [];
+        }
+
+        async function refreshAllData() {
+            [tools, clients, rentals] = await Promise.all([loadTools(), loadClients(), loadRentals()]);
+        }
+
+        // ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ С ДАННЫМИ -----
+        function getToolById(id) { return tools.find(t => t.id === id); }
+        function getClientById(id) { return clients.find(c => c.id === id); }
 
         // ----- НАВИГАЦИЯ -----
         function navigate(page) {
@@ -128,7 +191,7 @@
 
         // ----- ОТРИСОВКА СТРАНИЦ -----
         function render(html) {
-            document.getElementById('app').innerHTML = html;
+            document.getElementById('mainApp').innerHTML = html;
         }
 
         // ---------- ДАШБОРД ----------
@@ -140,8 +203,8 @@
             const activeRentals = rentals.filter(r => r.status === 'активна').length;
             const today = todayStr();
             const revenueToday = rentals
-                .filter(r => r.status === 'закрыта' && r.actualReturn === today)
-                .reduce((sum, r) => sum + (r.totalCost || 0), 0);
+                .filter(r => r.status === 'закрыта' && r.actual_return === today)
+                .reduce((sum, r) => sum + (r.total_cost || 0), 0);
             const recent = [...rentals]
                 .sort((a, b) => (b.id || '').localeCompare(a.id || ''))
                 .slice(0, 5);
@@ -168,15 +231,15 @@
                 html += `<tr><td colspan="6" class="text-center text-muted">Нет записей</td></tr>`;
             } else {
                 recent.forEach(r => {
-                    const client = getClientById(r.clientId);
-                    const tool = getToolById(r.toolId);
+                    const client = getClientById(r.client_id);
+                    const tool = getToolById(r.tool_id);
                     html += `
                     <tr>
-                        <td>${r.rentalNumber || '—'}</td>
+                        <td>${r.rental_number || '—'}</td>
                         <td>${client ? client.name : 'Удалён'}</td>
                         <td>${tool ? tool.model : 'Удалён'}</td>
-                        <td>${formatDate(r.issueDate)}</td>
-                        <td>${formatDate(r.plannedReturn)}</td>
+                        <td>${formatDate(r.issue_date)}</td>
+                        <td>${formatDate(r.planned_return)}</td>
                         <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
                     </tr>
                     `;
@@ -204,10 +267,10 @@
                 tools.forEach(t => {
                     html += `
                     <tr>
-                        <td><strong>${t.inventoryNumber || '—'}</strong></td>
+                        <td><strong>${t.inventory_number || '—'}</strong></td>
                         <td>${t.category || '—'}</td>
                         <td>${t.model || '—'}</td>
-                        <td>${t.pricePerDay || 0} ₽</td>
+                        <td>${t.price_per_day || 0} ₽</td>
                         <td>${t.deposit || 0} ₽</td>
                         <td><span class="badge bg-${getStatusColor(t.status)} rental-badge">${t.status || '—'}</span></td>
                         <td>
@@ -244,10 +307,10 @@
             render(`
             <h1>Редактировать инструмент</h1>
             <form onsubmit="window._saveTool(event)">
-                <div class="mb-3"><label class="form-label">Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventoryNumber || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventory_number || ''}" required /></div>
                 <div class="mb-3"><label class="form-label">Категория</label><input id="fCat" class="form-control" value="${tool.category || ''}" required /></div>
                 <div class="mb-3"><label class="form-label">Модель</label><input id="fModel" class="form-control" value="${tool.model || ''}" required /></div>
-                <div class="mb-3"><label class="form-label">Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.pricePerDay || 0}" required /></div>
+                <div class="mb-3"><label class="form-label">Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.price_per_day || 0}" required /></div>
                 <div class="mb-3"><label class="form-label">Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" value="${tool.deposit || 0}" required /></div>
                 <input type="hidden" id="fEditId" value="${id}" />
                 <button type="submit" class="btn btn-success">Обновить</button>
@@ -256,31 +319,35 @@
             `);
         };
 
-        window._saveTool = function(e) {
+        window._saveTool = async function(e) {
             e.preventDefault();
             const id = document.getElementById('fEditId').value;
             const data = {
-                inventoryNumber: document.getElementById('fInv').value.trim(),
+                inventory_number: document.getElementById('fInv').value.trim(),
                 category: document.getElementById('fCat').value.trim(),
                 model: document.getElementById('fModel').value.trim(),
-                pricePerDay: parseFloat(document.getElementById('fPrice').value) || 0,
+                price_per_day: parseFloat(document.getElementById('fPrice').value) || 0,
                 deposit: parseFloat(document.getElementById('fDeposit').value) || 0,
             };
             if (id) {
-                const tool = getToolById(id);
-                if (tool) Object.assign(tool, data);
+                // Обновление
+                const { error } = await supabase.from('tools').update(data).eq('id', id);
+                if (error) { alert('Ошибка обновления: ' + error.message); return; }
             } else {
-                const tool = { id: genId(), ...data, status: 'в наличии', repairReason: '', repairDate: null };
-                tools.push(tool);
+                // Добавление
+                const newTool = { id: genId(), ...data, status: 'в наличии', repair_reason: '', repair_date: null };
+                const { error } = await supabase.from('tools').insert(newTool);
+                if (error) { alert('Ошибка добавления: ' + error.message); return; }
             }
-            saveAll();
+            await refreshAllData();
             navigate('tools');
         };
 
-        window._deleteTool = function(id) {
+        window._deleteTool = async function(id) {
             if (!confirm('Удалить инструмент?')) return;
-            tools = tools.filter(t => t.id !== id);
-            saveAll();
+            const { error } = await supabase.from('tools').delete().eq('id', id);
+            if (error) { alert('Ошибка удаления: ' + error.message); return; }
+            await refreshAllData();
             navigate('tools');
         };
 
@@ -300,7 +367,7 @@
                 html += `<tr><td colspan="5" class="text-center text-muted">Нет клиентов</td></tr>`;
             } else {
                 clients.forEach(c => {
-                    const count = rentals.filter(r => r.clientId === c.id).length;
+                    const count = rentals.filter(r => r.client_id === c.id).length;
                     html += `
                     <tr>
                         <td><strong>${c.name || '—'}</strong></td>
@@ -349,7 +416,7 @@
             `);
         };
 
-        window._saveClient = function(e) {
+        window._saveClient = async function(e) {
             e.preventDefault();
             const id = document.getElementById('fEditClientId').value;
             const data = {
@@ -358,24 +425,27 @@
                 email: document.getElementById('fEmail').value.trim()
             };
             if (id) {
-                const client = getClientById(id);
-                if (client) Object.assign(client, data);
+                const { error } = await supabase.from('clients').update(data).eq('id', id);
+                if (error) { alert('Ошибка обновления: ' + error.message); return; }
             } else {
-                clients.push({ id: genId(), ...data });
+                const newClient = { id: genId(), ...data };
+                const { error } = await supabase.from('clients').insert(newClient);
+                if (error) { alert('Ошибка добавления: ' + error.message); return; }
             }
-            saveAll();
+            await refreshAllData();
             navigate('clients');
         };
 
-        window._deleteClient = function(id) {
+        window._deleteClient = async function(id) {
             if (!confirm('Удалить клиента?')) return;
-            const hasActive = rentals.some(r => r.clientId === id && r.status === 'активна');
+            const hasActive = rentals.some(r => r.client_id === id && r.status === 'активна');
             if (hasActive) {
                 alert('Нельзя удалить клиента с активной арендой');
                 return;
             }
-            clients = clients.filter(c => c.id !== id);
-            saveAll();
+            const { error } = await supabase.from('clients').delete().eq('id', id);
+            if (error) { alert('Ошибка удаления: ' + error.message); return; }
+            await refreshAllData();
             navigate('clients');
         };
 
@@ -386,7 +456,7 @@
             ).join('');
             const toolOpts = tools.filter(t => t.status === 'в наличии')
                 .map(t =>
-                    `<option value="${t.id}">${t.model} (${t.inventoryNumber}) — ${t.pricePerDay}₽/сут</option>`
+                    `<option value="${t.id}">${t.model} (${t.inventory_number}) — ${t.price_per_day}₽/сут</option>`
                 ).join('');
             const today = todayStr();
 
@@ -416,7 +486,7 @@
             `);
         }
 
-        window._saveRental = function(e) {
+        window._saveRental = async function(e) {
             e.preventDefault();
             const clientId = document.getElementById('rClient').value;
             const toolId = document.getElementById('rTool').value;
@@ -437,22 +507,28 @@
 
             const rental = {
                 id: genId(),
-                rentalNumber: 'AR-' + Date.now().toString(36).toUpperCase(),
-                clientId: clientId,
-                toolId: toolId,
-                issueDate: issueDate,
-                plannedReturn: planned.toISOString().split('T')[0],
-                actualReturn: null,
-                pricePerDay: tool.pricePerDay,
-                totalCost: tool.pricePerDay * days,
+                rental_number: 'AR-' + Date.now().toString(36).toUpperCase(),
+                client_id: clientId,
+                tool_id: toolId,
+                issue_date: issueDate,
+                planned_return: planned.toISOString().split('T')[0],
+                actual_return: null,
+                price_per_day: tool.price_per_day,
+                total_cost: tool.price_per_day * days,
                 deposit: tool.deposit,
                 status: 'активна',
-                returnCondition: ''
+                return_condition: ''
             };
 
-            tool.status = 'в аренде';
-            rentals.push(rental);
-            saveAll();
+            // 1. Обновляем статус инструмента
+            const { error: toolError } = await supabase.from('tools').update({ status: 'в аренде' }).eq('id', toolId);
+            if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
+
+            // 2. Создаём аренду
+            const { error: rentalError } = await supabase.from('rentals').insert(rental);
+            if (rentalError) { alert('Ошибка создания аренды: ' + rentalError.message); return; }
+
+            await refreshAllData();
             navigate('dashboard');
         };
 
@@ -460,9 +536,9 @@
         function renderReturnRental() {
             const active = rentals.filter(r => r.status === 'активна');
             let opts = active.map(r => {
-                const client = getClientById(r.clientId);
-                const tool = getToolById(r.toolId);
-                const label = `${r.rentalNumber} — ${tool ? tool.model : 'Удалён'} (${client ? client.name : 'Удалён'})`;
+                const client = getClientById(r.client_id);
+                const tool = getToolById(r.tool_id);
+                const label = `${r.rental_number} — ${tool ? tool.model : 'Удалён'} (${client ? client.name : 'Удалён'})`;
                 return `<option value="${r.id}">${label}</option>`;
             }).join('');
             const today = todayStr();
@@ -501,7 +577,7 @@
             render(html);
         }
 
-        window._returnRental = function(sendToRepair) {
+        window._returnRental = async function(sendToRepair) {
             const rentalId = document.getElementById('retRental').value;
             const actualReturn = document.getElementById('retDate').value;
             const condition = document.getElementById('retCondition') ? document.getElementById('retCondition').value : 'Хорошее';
@@ -510,30 +586,32 @@
             const rental = rentals.find(r => r.id === rentalId);
             if (!rental) return;
 
-            const planned = new Date(rental.plannedReturn);
+            const planned = new Date(rental.planned_return);
             const actual = new Date(actualReturn);
+            let totalCost = rental.total_cost;
             if (actual > planned) {
                 const extraDays = Math.ceil((actual - planned) / (1000 * 60 * 60 * 24));
-                rental.totalCost += extraDays * rental.pricePerDay;
-            }
-            rental.actualReturn = actualReturn;
-            rental.status = 'закрыта';
-            rental.returnCondition = condition;
-
-            const tool = getToolById(rental.toolId);
-            if (tool) {
-                if (sendToRepair) {
-                    tool.status = 'на обслуживании';
-                    tool.repairReason = condition;
-                    tool.repairDate = actualReturn;
-                } else {
-                    tool.status = 'в наличии';
-                    tool.repairReason = '';
-                    tool.repairDate = null;
-                }
+                totalCost += extraDays * rental.price_per_day;
             }
 
-            saveAll();
+            // 1. Обновляем аренду
+            const { error: rentalError } = await supabase.from('rentals').update({
+                actual_return: actualReturn,
+                status: 'закрыта',
+                return_condition: condition,
+                total_cost: totalCost
+            }).eq('id', rentalId);
+            if (rentalError) { alert('Ошибка обновления аренды: ' + rentalError.message); return; }
+
+            // 2. Обновляем инструмент
+            const toolId = rental.tool_id;
+            const toolUpdate = sendToRepair
+                ? { status: 'на обслуживании', repair_reason: condition, repair_date: actualReturn }
+                : { status: 'в наличии', repair_reason: '', repair_date: null };
+            const { error: toolError } = await supabase.from('tools').update(toolUpdate).eq('id', toolId);
+            if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
+
+            await refreshAllData();
             navigate('dashboard');
         };
 
@@ -554,10 +632,10 @@
             repairTools.forEach(t => {
                 html += `
                 <tr>
-                    <td>${t.inventoryNumber || '—'}</td>
+                    <td>${t.inventory_number || '—'}</td>
                     <td>${t.model || '—'}</td>
-                    <td>${t.repairReason || '—'}</td>
-                    <td>${formatDate(t.repairDate)}</td>
+                    <td>${t.repair_reason || '—'}</td>
+                    <td>${formatDate(t.repair_date)}</td>
                     <td><button class="btn btn-sm btn-success" onclick="window._returnFromRepair('${t.id}')">Вернуть с ТО</button></td>
                 </tr>
                 `;
@@ -568,27 +646,25 @@
             render(html);
         }
 
-        window._returnFromRepair = function(toolId) {
+        window._returnFromRepair = async function(toolId) {
             if (!confirm('Вернуть инструмент с ТО в наличие?')) return;
-            const tool = getToolById(toolId);
-            if (tool) {
-                tool.status = 'в наличии';
-                tool.repairReason = '';
-                tool.repairDate = null;
-                saveAll();
-                navigate('repair');
-            }
+            const { error } = await supabase.from('tools').update({
+                status: 'в наличии',
+                repair_reason: '',
+                repair_date: null
+            }).eq('id', toolId);
+            if (error) { alert('Ошибка: ' + error.message); return; }
+            await refreshAllData();
+            navigate('repair');
         };
 
-        // ---------- ИСТОРИЯ АРЕНД (с удалением) ----------
+        // ---------- ИСТОРИЯ АРЕНД ----------
         function renderHistory() {
-            // Фильтр по статусу
             const filter = document.getElementById('historyFilter') ? document.getElementById('historyFilter').value : 'all';
             let filtered = rentals;
             if (filter === 'active') filtered = rentals.filter(r => r.status === 'активна');
             else if (filter === 'closed') filtered = rentals.filter(r => r.status === 'закрыта');
 
-            // Сортировка по убыванию даты создания (по id, так как id содержит время)
             const sorted = [...filtered].sort((a, b) => (b.id || '').localeCompare(a.id || ''));
 
             let html = `
@@ -622,19 +698,19 @@
                 html += `<tr><td colspan="10" class="text-center text-muted">Нет записей</td></tr>`;
             } else {
                 sorted.forEach(r => {
-                    const client = getClientById(r.clientId);
-                    const tool = getToolById(r.toolId);
-                    const canDelete = r.status !== 'активна'; // можно удалить только закрытые
+                    const client = getClientById(r.client_id);
+                    const tool = getToolById(r.tool_id);
+                    const canDelete = r.status !== 'активна';
                     html += `
                     <tr>
-                        <td>${r.rentalNumber || '—'}</td>
+                        <td>${r.rental_number || '—'}</td>
                         <td>${client ? client.name : 'Удалён'}</td>
                         <td>${tool ? tool.model : 'Удалён'}</td>
-                        <td>${formatDate(r.issueDate)}</td>
-                        <td>${formatDate(r.plannedReturn)}</td>
-                        <td>${formatDate(r.actualReturn)}</td>
-                        <td>${r.totalCost || 0} ₽</td>
-                        <td>${r.returnCondition || '—'}</td>
+                        <td>${formatDate(r.issue_date)}</td>
+                        <td>${formatDate(r.planned_return)}</td>
+                        <td>${formatDate(r.actual_return)}</td>
+                        <td>${r.total_cost || 0} ₽</td>
+                        <td>${r.return_condition || '—'}</td>
                         <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
                         <td>
                             ${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="window._deleteRental('${r.id}')">🗑</button>` : '<span class="text-muted">—</span>'}
@@ -647,8 +723,7 @@
             render(html);
         }
 
-        // Удаление аренды
-        window._deleteRental = function(rentalId) {
+        window._deleteRental = async function(rentalId) {
             if (!confirm('Удалить эту аренду? Это действие необратимо.')) return;
             const rental = rentals.find(r => r.id === rentalId);
             if (!rental) return;
@@ -656,19 +731,87 @@
                 alert('Нельзя удалить активную аренду. Сначала верните инструмент.');
                 return;
             }
-            // Если аренда закрыта, удаляем её. Инструмент уже должен быть в наличии, но на всякий случай проверим и вернём в наличие, если это не так.
-            const tool = getToolById(rental.toolId);
-            if (tool && tool.status === 'в аренде') {
-                // если по ошибке инструмент остался в аренде, исправляем
-                tool.status = 'в наличии';
-            }
-            rentals = rentals.filter(r => r.id !== rentalId);
-            saveAll();
-            renderHistory(); // обновляем страницу истории
+            const { error } = await supabase.from('rentals').delete().eq('id', rentalId);
+            if (error) { alert('Ошибка удаления: ' + error.message); return; }
+            await refreshAllData();
+            renderHistory();
         };
 
+        // ---------- АВТОРИЗАЦИЯ ----------
+        window.login = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert('Ошибка входа: ' + error.message);
+                return;
+            }
+            if (data.user) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('mainNav').style.display = 'flex';
+                await refreshAllData();
+                navigate('dashboard');
+            }
+        };
+
+        window.register = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) {
+                alert('Ошибка регистрации: ' + error.message);
+                return;
+            }
+            alert('Регистрация успешна! Теперь войдите.');
+            showLogin();
+        };
+
+        window.logout = async function() {
+            await supabase.auth.signOut();
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('registerPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('mainNav').style.display = 'none';
+            // Очищаем данные
+            tools = [];
+            clients = [];
+            rentals = [];
+        };
+
+        window.showRegister = function() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('registerPage').classList.remove('hidden');
+        };
+
+        window.showLogin = function() {
+            document.getElementById('registerPage').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+        };
+
+        // ---------- ПРОВЕРКА СЕССИИ ПРИ ЗАГРУЗКЕ ----------
+        async function checkSession() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('mainNav').style.display = 'flex';
+                await refreshAllData();
+                navigate('dashboard');
+            } else {
+                document.getElementById('loginPage').classList.remove('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('mainNav').style.display = 'none';
+            }
+        }
+
         // ----- СТАРТ -----
-        navigate('dashboard');
+        checkSession();
     })();
 </script>
 </body>
