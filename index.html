@@ -7,17 +7,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
         body { padding-top: 70px; }
-        .pointer { cursor: pointer; }
         .card-dashboard { transition: 0.2s; }
         .card-dashboard:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .navbar-brand { font-weight: 600; }
         .table-tools td { vertical-align: middle; }
         .rental-badge { font-size: 0.75rem; }
         .btn-edit { margin-right: 5px; }
-        .btn-delete-rental { color: #dc3545; background: none; border: none; padding: 0 5px; }
-        .btn-delete-rental:hover { color: #a71d2a; text-decoration: underline; }
         .login-container { max-width: 400px; margin: 50px auto; }
         .hidden { display: none; }
+        .pointer { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -35,12 +33,13 @@
                 <li class="nav-item"><a class="nav-link" href="#" data-page="tools">Инструменты</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="clients">Клиенты</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="newRental">Выдать</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" data-page="activeRentals">Активные</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="returnRental">Вернуть</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="repair">🔧 ТО</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="history">📜 История</a></li>
             </ul>
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn" onclick="logout()">Выйти</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Выйти</a></li>
             </ul>
         </div>
     </div>
@@ -48,7 +47,7 @@
 
 <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
 <div class="container" id="app">
-    <!-- Страница входа (показывается по умолчанию) -->
+    <!-- Страница входа -->
     <div id="loginPage" class="login-container">
         <h2 class="text-center mb-4">Вход в систему</h2>
         <form onsubmit="login(event)">
@@ -66,7 +65,7 @@
         </form>
     </div>
 
-    <!-- Форма регистрации (скрыта по умолчанию) -->
+    <!-- Регистрация -->
     <div id="registerPage" class="login-container hidden">
         <h2 class="text-center mb-4">Регистрация</h2>
         <form onsubmit="register(event)">
@@ -84,26 +83,18 @@
         </form>
     </div>
 
-    <!-- Основной контент (скрыт до входа) -->
+    <!-- Основной контент -->
     <div id="mainApp" class="hidden"></div>
 </div>
 
-<!-- ПОДКЛЮЧАЕМ SUPABASE JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     (function() {
         'use strict';
 
-        // ============================================================
-        // ⚠️ ВСТАВЬТЕ СВОИ ДАННЫЕ ИЗ НАСТРОЕК SUPABASE (Settings → API)
-        // ============================================================
-       const SUPABASE_URL = 'https://jptbqcbpllffgufusibj.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
-
-        if (SUPABASE_URL === 'https://ВАШ_ПРОЕКТ.supabase.co' || SUPABASE_ANON_KEY === 'eyJ...') {
-            alert('⚠️ Сначала вставьте свои SUPABASE_URL и SUPABASE_ANON_KEY в код!');
-        }
-
+        // ===== ВАШИ ДАННЫЕ SUPABASE =====
+        const SUPABASE_URL = 'https://jptbqcbpllffgufusibj.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ -----
@@ -133,35 +124,31 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             return new Date().toISOString().split('T')[0];
         }
 
-        // ----- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ДАННЫХ -----
+        // ----- ГЛОБАЛЬНЫЕ ДАННЫЕ -----
         let tools = [];
         let clients = [];
         let rentals = [];
 
-        // ----- ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ ИЗ SUPABASE -----
+        // ----- ЗАГРУЗКА ДАННЫХ -----
         async function loadTools() {
             const { data, error } = await supabase.from('tools').select('*');
             if (error) { console.error('Ошибка загрузки инструментов:', error); return []; }
             return data || [];
         }
-
         async function loadClients() {
             const { data, error } = await supabase.from('clients').select('*');
             if (error) { console.error('Ошибка загрузки клиентов:', error); return []; }
             return data || [];
         }
-
         async function loadRentals() {
             const { data, error } = await supabase.from('rentals').select('*');
             if (error) { console.error('Ошибка загрузки аренд:', error); return []; }
             return data || [];
         }
-
         async function refreshAllData() {
             [tools, clients, rentals] = await Promise.all([loadTools(), loadClients(), loadRentals()]);
         }
 
-        // ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ С ДАННЫМИ -----
         function getToolById(id) { return tools.find(t => t.id === id); }
         function getClientById(id) { return clients.find(c => c.id === id); }
 
@@ -171,13 +158,14 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             const link = document.querySelector(`#navList .nav-link[data-page="${page}"]`);
             if (link) link.classList.add('active');
             switch (page) {
-                case 'dashboard':   renderDashboard(); break;
-                case 'tools':       renderTools(); break;
-                case 'clients':     renderClients(); break;
-                case 'newRental':   renderNewRental(); break;
-                case 'returnRental': renderReturnRental(); break;
-                case 'repair':      renderRepair(); break;
-                case 'history':     renderHistory(); break;
+                case 'dashboard':       renderDashboard(); break;
+                case 'tools':           renderTools(); break;
+                case 'clients':         renderClients(); break;
+                case 'newRental':       renderNewRental(); break;
+                case 'activeRentals':   renderActiveRentals(); break;
+                case 'returnRental':    renderReturnRental(); break;
+                case 'repair':          renderRepair(); break;
+                case 'history':         renderHistory(); break;
                 default: renderDashboard();
             }
         }
@@ -189,7 +177,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             if (page) navigate(page);
         });
 
-        // ----- ОТРИСОВКА СТРАНИЦ -----
         function render(html) {
             document.getElementById('mainApp').innerHTML = html;
         }
@@ -205,9 +192,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             const revenueToday = rentals
                 .filter(r => r.status === 'закрыта' && r.actual_return === today)
                 .reduce((sum, r) => sum + (r.total_cost || 0), 0);
-            const recent = [...rentals]
-                .sort((a, b) => (b.id || '').localeCompare(a.id || ''))
-                .slice(0, 5);
+            const recent = [...rentals].sort((a, b) => (b.id || '').localeCompare(a.id || '')).slice(0, 5);
 
             let html = `
             <h1 class="mb-4">Дашборд</h1>
@@ -330,11 +315,9 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
                 deposit: parseFloat(document.getElementById('fDeposit').value) || 0,
             };
             if (id) {
-                // Обновление
                 const { error } = await supabase.from('tools').update(data).eq('id', id);
                 if (error) { alert('Ошибка обновления: ' + error.message); return; }
             } else {
-                // Добавление
                 const newTool = { id: genId(), ...data, status: 'в наличии', repair_reason: '', repair_date: null };
                 const { error } = await supabase.from('tools').insert(newTool);
                 if (error) { alert('Ошибка добавления: ' + error.message); return; }
@@ -351,7 +334,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             navigate('tools');
         };
 
-        // ---------- КЛИЕНТЫ ----------
+        // ---------- КЛИЕНТЫ (с историей) ----------
         function renderClients() {
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -375,6 +358,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
                         <td>${c.email || '—'}</td>
                         <td>${count}</td>
                         <td>
+                            <button class="btn btn-sm btn-outline-info btn-edit" onclick="window._showClientHistory('${c.id}')">📋 История</button>
                             <button class="btn btn-sm btn-outline-primary btn-edit" onclick="window._editClient('${c.id}')">✎</button>
                             <button class="btn btn-sm btn-outline-danger" onclick="window._deleteClient('${c.id}')">✕</button>
                         </td>
@@ -385,6 +369,56 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             html += `</tbody></table></div>`;
             render(html);
         }
+
+        // Показать историю аренд конкретного клиента
+        window._showClientHistory = function(clientId) {
+            const client = getClientById(clientId);
+            if (!client) return;
+            const clientRentals = rentals.filter(r => r.client_id === clientId)
+                .sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+
+            let html = `
+            <h1>История аренд: ${client.name}</h1>
+            <p><strong>Телефон:</strong> ${client.phone || '—'} &nbsp; <strong>Email:</strong> ${client.email || '—'}</p>
+            <button class="btn btn-secondary mb-3" onclick="navigate('clients')">← Назад к клиентам</button>
+            <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead><tr>
+                    <th>№</th>
+                    <th>Инструмент</th>
+                    <th>Выдача</th>
+                    <th>План возврат</th>
+                    <th>Факт возврат</th>
+                    <th>Цена/сутки</th>
+                    <th>Сумма</th>
+                    <th>Состояние</th>
+                    <th>Статус</th>
+                </tr></thead>
+                <tbody>
+            `;
+            if (clientRentals.length === 0) {
+                html += `<tr><td colspan="9" class="text-center text-muted">У клиента нет аренд</td></tr>`;
+            } else {
+                clientRentals.forEach(r => {
+                    const tool = getToolById(r.tool_id);
+                    html += `
+                    <tr>
+                        <td>${r.rental_number || '—'}</td>
+                        <td>${tool ? tool.model : 'Удалён'}</td>
+                        <td>${formatDate(r.issue_date)}</td>
+                        <td>${formatDate(r.planned_return)}</td>
+                        <td>${formatDate(r.actual_return)}</td>
+                        <td>${r.price_per_day || 0} ₽</td>
+                        <td>${r.total_cost || 0} ₽</td>
+                        <td>${r.return_condition || '—'}</td>
+                        <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
+                    </tr>
+                    `;
+                });
+            }
+            html += `</tbody></table></div>`;
+            render(html);
+        };
 
         window._addClient = function() {
             render(`
@@ -520,17 +554,64 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
                 return_condition: ''
             };
 
-            // 1. Обновляем статус инструмента
             const { error: toolError } = await supabase.from('tools').update({ status: 'в аренде' }).eq('id', toolId);
             if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
 
-            // 2. Создаём аренду
             const { error: rentalError } = await supabase.from('rentals').insert(rental);
             if (rentalError) { alert('Ошибка создания аренды: ' + rentalError.message); return; }
 
             await refreshAllData();
             navigate('dashboard');
         };
+
+        // ---------- АКТИВНЫЕ АРЕНДЫ (подробно) ----------
+        function renderActiveRentals() {
+            const active = rentals.filter(r => r.status === 'активна');
+            let html = `
+            <h1>Активные аренды</h1>
+            <p class="text-muted">Всего активных: ${active.length}</p>
+            <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead><tr>
+                    <th>№</th>
+                    <th>Клиент</th>
+                    <th>Инструмент</th>
+                    <th>Цена/сутки</th>
+                    <th>Выдача</th>
+                    <th>План возврат</th>
+                    <th>Дней</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                </tr></thead>
+                <tbody>
+            `;
+            if (active.length === 0) {
+                html += `<tr><td colspan="9" class="text-center text-muted">Нет активных аренд</td></tr>`;
+            } else {
+                active.forEach(r => {
+                    const client = getClientById(r.client_id);
+                    const tool = getToolById(r.tool_id);
+                    const days = Math.ceil((new Date(r.planned_return) - new Date(r.issue_date)) / (1000*60*60*24));
+                    html += `
+                    <tr>
+                        <td>${r.rental_number || '—'}</td>
+                        <td>${client ? client.name : 'Удалён'}</td>
+                        <td>${tool ? tool.model : 'Удалён'}</td>
+                        <td>${r.price_per_day || 0} ₽</td>
+                        <td>${formatDate(r.issue_date)}</td>
+                        <td>${formatDate(r.planned_return)}</td>
+                        <td>${days}</td>
+                        <td>${r.total_cost || 0} ₽</td>
+                        <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
+                    </tr>
+                    `;
+                });
+            }
+            html += `</tbody></table></div>
+            <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>
+            `;
+            render(html);
+        }
 
         // ---------- ВОЗВРАТ ----------
         function renderReturnRental() {
@@ -594,7 +675,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
                 totalCost += extraDays * rental.price_per_day;
             }
 
-            // 1. Обновляем аренду
             const { error: rentalError } = await supabase.from('rentals').update({
                 actual_return: actualReturn,
                 status: 'закрыта',
@@ -603,7 +683,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             }).eq('id', rentalId);
             if (rentalError) { alert('Ошибка обновления аренды: ' + rentalError.message); return; }
 
-            // 2. Обновляем инструмент
             const toolId = rental.tool_id;
             const toolUpdate = sendToRepair
                 ? { status: 'на обслуживании', repair_reason: condition, repair_date: actualReturn }
@@ -658,7 +737,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             navigate('repair');
         };
 
-        // ---------- ИСТОРИЯ АРЕНД ----------
+        // ---------- ОБЩАЯ ИСТОРИЯ ----------
         function renderHistory() {
             const filter = document.getElementById('historyFilter') ? document.getElementById('historyFilter').value : 'all';
             let filtered = rentals;
@@ -776,7 +855,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             document.getElementById('registerPage').classList.add('hidden');
             document.getElementById('mainApp').classList.add('hidden');
             document.getElementById('mainNav').style.display = 'none';
-            // Очищаем данные
             tools = [];
             clients = [];
             rentals = [];
@@ -792,7 +870,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
             document.getElementById('loginPage').classList.remove('hidden');
         };
 
-        // ---------- ПРОВЕРКА СЕССИИ ПРИ ЗАГРУЗКЕ ----------
+        // ---------- ПРОВЕРКА СЕССИИ ----------
         async function checkSession() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
