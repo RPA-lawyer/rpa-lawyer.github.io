@@ -155,13 +155,33 @@
         function getToolById(id) { return tools.find(t => t.id === id); }
         function getClientById(id) { return clients.find(c => c.id === id); }
 
-        // ----- НАВИГАЦИЯ (с передачей параметра) -----
-        let currentPage = 'dashboard';
-        let currentParam = null;
+        // ----- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ФИЛЬТРОВ -----
+        let activeSearch = '';
+        let activeStatus = '';
+        let historySearch = '';
+        let historyFilter = 'all';
+        let toolsSearch = '';
+        let toolsStatus = '';
+        let clientsSearch = '';
 
+        // ----- НАВИГАЦИЯ -----
         function navigate(page, param) {
-            currentPage = page;
-            currentParam = param || null;
+            // Обновляем текущие фильтры из DOM, если они существуют
+            if (page === 'activeRentals') {
+                activeSearch = document.getElementById('activeSearch')?.value || activeSearch;
+                activeStatus = document.getElementById('activeStatusFilter')?.value || activeStatus;
+                if (param === 'overdue') activeStatus = 'просрочена';
+                else if (param === 'soon') activeStatus = 'soon';
+            } else if (page === 'history') {
+                historySearch = document.getElementById('historySearch')?.value || historySearch;
+                historyFilter = document.getElementById('historyFilter')?.value || historyFilter;
+            } else if (page === 'tools') {
+                toolsSearch = document.getElementById('toolSearch')?.value || toolsSearch;
+                toolsStatus = document.getElementById('toolStatusFilter')?.value || toolsStatus;
+            } else if (page === 'clients') {
+                clientsSearch = document.getElementById('clientSearch')?.value || clientsSearch;
+            }
+
             document.querySelectorAll('#navList .nav-link').forEach(el => el.classList.remove('active'));
             const link = document.querySelector(`#navList .nav-link[data-page="${page}"]`);
             if (link) link.classList.add('active');
@@ -171,7 +191,7 @@
                 case 'tools':           renderTools(); break;
                 case 'clients':         renderClients(); break;
                 case 'newRental':       renderNewRental(); break;
-                case 'activeRentals':   renderActiveRentals(param); break;
+                case 'activeRentals':   renderActiveRentals(); break;
                 case 'returnRental':    renderReturnRental(); break;
                 case 'repair':          renderRepair(); break;
                 case 'history':         renderHistory(); break;
@@ -287,8 +307,13 @@
 
         // ---------- ИНСТРУМЕНТЫ ----------
         function renderTools() {
-            const oldSearch = document.getElementById('toolSearch')?.value || '';
-            const oldStatus = document.getElementById('toolStatusFilter')?.value || '';
+            // Сохраняем текущие значения фильтров (из глобальных переменных)
+            const search = toolsSearch.toLowerCase();
+            const statusFilter = toolsStatus;
+            let filtered = tools;
+            if (search) filtered = filtered.filter(t => t.model?.toLowerCase().includes(search) || t.inventory_number?.toLowerCase().includes(search));
+            if (statusFilter) filtered = filtered.filter(t => t.status === statusFilter);
+
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1>Инструменты</h1>
@@ -297,15 +322,15 @@
             <div class="filter-section">
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <input type="text" id="toolSearch" class="form-control" placeholder="Поиск по модели или инв. №" value="${oldSearch}" oninput="renderTools()">
+                        <input type="text" id="toolSearch" class="form-control" placeholder="Поиск по модели или инв. №" value="${toolsSearch}" oninput="toolsSearch=this.value; renderTools();">
                     </div>
                     <div class="col-md-3">
-                        <select id="toolStatusFilter" class="form-select" onchange="renderTools()">
+                        <select id="toolStatusFilter" class="form-select" onchange="toolsStatus=this.value; renderTools();">
                             <option value="">Все статусы</option>
-                            <option value="в наличии" ${oldStatus === 'в наличии' ? 'selected' : ''}>В наличии</option>
-                            <option value="в аренде" ${oldStatus === 'в аренде' ? 'selected' : ''}>В аренде</option>
-                            <option value="забронирован" ${oldStatus === 'забронирован' ? 'selected' : ''}>Забронирован</option>
-                            <option value="на обслуживании" ${oldStatus === 'на обслуживании' ? 'selected' : ''}>На ТО</option>
+                            <option value="в наличии" ${toolsStatus === 'в наличии' ? 'selected' : ''}>В наличии</option>
+                            <option value="в аренде" ${toolsStatus === 'в аренде' ? 'selected' : ''}>В аренде</option>
+                            <option value="забронирован" ${toolsStatus === 'забронирован' ? 'selected' : ''}>Забронирован</option>
+                            <option value="на обслуживании" ${toolsStatus === 'на обслуживании' ? 'selected' : ''}>На ТО</option>
                         </select>
                     </div>
                 </div>
@@ -313,13 +338,8 @@
             <div class="table-responsive"><table class="table table-hover table-tools">
                 <thead><tr><th>Инв. №</th><th>Категория</th><th>Модель</th><th>Цена/сутки</th><th>Залог</th><th>Статус</th><th>Действия</th></tr></thead>
                 <tbody>
-                ${(() => {
-                    const search = oldSearch.toLowerCase();
-                    let filtered = tools;
-                    if (search) filtered = filtered.filter(t => t.model?.toLowerCase().includes(search) || t.inventory_number?.toLowerCase().includes(search));
-                    if (oldStatus) filtered = filtered.filter(t => t.status === oldStatus);
-                    if (filtered.length === 0) return '<tr><td colspan="7" class="text-center text-muted">Нет инструментов</td></tr>';
-                    return filtered.map(t => `
+                ${filtered.length === 0 ? '<tr><td colspan="7" class="text-center text-muted">Нет инструментов</td></tr>' : 
+                    filtered.map(t => `
                         <tr>
                             <td><strong>${t.inventory_number || '—'}</strong></td>
                             <td>${t.category || '—'}</td>
@@ -332,20 +352,82 @@
                                 <button class="btn btn-sm btn-outline-danger" onclick="window._deleteTool('${t.id}')">✕</button>
                             </td>
                         </tr>
-                    `).join('');
-                })()}
+                    `).join('')
+                }
                 </tbody></table></div>`;
             render(html);
         }
 
-        window._addTool = function() { /* ... (без изменений) */ };
-        window._editTool = function(id) { /* ... */ };
-        window._saveTool = async function(e) { /* ... */ };
-        window._deleteTool = async function(id) { /* ... */ };
+        window._addTool = function() {
+            render(`
+            <h1>Добавить инструмент</h1>
+            <form onsubmit="window._saveTool(event)">
+                <div class="mb-3"><label class="form-label">Инв. номер</label><input id="fInv" class="form-control" required /></div>
+                <div class="mb-3"><label class="form-label">Категория</label><input id="fCat" class="form-control" required /></div>
+                <div class="mb-3"><label class="form-label">Модель</label><input id="fModel" class="form-control" required /></div>
+                <div class="mb-3"><label class="form-label">Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" required /></div>
+                <div class="mb-3"><label class="form-label">Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" required /></div>
+                <input type="hidden" id="fEditId" value="" />
+                <button type="submit" class="btn btn-success">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._editTool = function(id) {
+            const tool = getToolById(id);
+            if (!tool) return;
+            render(`
+            <h1>Редактировать инструмент</h1>
+            <form onsubmit="window._saveTool(event)">
+                <div class="mb-3"><label class="form-label">Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventory_number || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Категория</label><input id="fCat" class="form-control" value="${tool.category || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Модель</label><input id="fModel" class="form-control" value="${tool.model || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.price_per_day || 0}" required /></div>
+                <div class="mb-3"><label class="form-label">Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" value="${tool.deposit || 0}" required /></div>
+                <input type="hidden" id="fEditId" value="${id}" />
+                <button type="submit" class="btn btn-success">Обновить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._saveTool = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('fEditId').value;
+            const data = {
+                inventory_number: document.getElementById('fInv').value.trim(),
+                category: document.getElementById('fCat').value.trim(),
+                model: document.getElementById('fModel').value.trim(),
+                price_per_day: parseFloat(document.getElementById('fPrice').value) || 0,
+                deposit: parseFloat(document.getElementById('fDeposit').value) || 0,
+            };
+            if (id) {
+                const { error } = await supabase.from('tools').update(data).eq('id', id);
+                if (error) { alert('Ошибка обновления: ' + error.message); return; }
+            } else {
+                const newTool = { id: genId(), ...data, status: 'в наличии', repair_reason: '', repair_date: null };
+                const { error } = await supabase.from('tools').insert(newTool);
+                if (error) { alert('Ошибка добавления: ' + error.message); return; }
+            }
+            await refreshAllData();
+            navigate('tools');
+        };
+
+        window._deleteTool = async function(id) {
+            if (!confirm('Удалить инструмент?')) return;
+            const { error } = await supabase.from('tools').delete().eq('id', id);
+            if (error) { alert('Ошибка удаления: ' + error.message); return; }
+            await refreshAllData();
+            navigate('tools');
+        };
 
         // ---------- КЛИЕНТЫ ----------
         function renderClients() {
-            const oldSearch = document.getElementById('clientSearch')?.value || '';
+            const search = clientsSearch.toLowerCase();
+            let filtered = clients;
+            if (search) filtered = filtered.filter(c => c.name?.toLowerCase().includes(search) || c.phone?.includes(search));
+
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1>Клиенты</h1>
@@ -354,19 +436,15 @@
             <div class="filter-section">
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <input type="text" id="clientSearch" class="form-control" placeholder="Поиск по имени или телефону" value="${oldSearch}" oninput="renderClients()">
+                        <input type="text" id="clientSearch" class="form-control" placeholder="Поиск по имени или телефону" value="${clientsSearch}" oninput="clientsSearch=this.value; renderClients();">
                     </div>
                 </div>
             </div>
             <div class="table-responsive"><table class="table table-hover">
                 <thead><tr><th>Имя</th><th>Телефон</th><th>Email</th><th>Аренд</th><th>Действия</th></tr></thead>
                 <tbody>
-                ${(() => {
-                    const search = oldSearch.toLowerCase();
-                    let filtered = clients;
-                    if (search) filtered = filtered.filter(c => c.name?.toLowerCase().includes(search) || c.phone?.includes(search));
-                    if (filtered.length === 0) return '<tr><td colspan="5" class="text-center text-muted">Нет клиентов</td></tr>';
-                    return filtered.map(c => {
+                ${filtered.length === 0 ? '<tr><td colspan="5" class="text-center text-muted">Нет клиентов</td></tr>' : 
+                    filtered.map(c => {
                         const count = rentals.filter(r => r.client_id === c.id).length;
                         return `<tr><td><strong>${c.name || '—'}</strong></td><td>${c.phone || '—'}</td><td>${c.email || '—'}</td><td>${count}</td>
                             <td>
@@ -374,64 +452,240 @@
                                 <button class="btn btn-sm btn-outline-primary btn-edit" onclick="window._editClient('${c.id}')">✎</button>
                                 <button class="btn btn-sm btn-outline-danger" onclick="window._deleteClient('${c.id}')">✕</button>
                             </td></tr>`;
-                    }).join('');
-                })()}
+                    }).join('')
+                }
                 </tbody></table></div>`;
             render(html);
         }
 
-        window._showClientHistory = function(clientId) { /* ... */ };
-        window._addClient = function() { /* ... */ };
-        window._editClient = function(id) { /* ... */ };
-        window._saveClient = async function(e) { /* ... */ };
-        window._deleteClient = async function(id) { /* ... */ };
-
-        // ---------- ВЫДАТЬ ----------
-        function renderNewRental() { /* ... (без изменений) */ }
-        window._saveRental = async function(e) { /* ... */ };
-
-        // ---------- АКТИВНЫЕ АРЕНДЫ (исправлено) ----------
-        function renderActiveRentals(param) {
-            // Если param не передан, используем текущий сохранённый параметр
-            if (!param) param = currentParam;
-            // Получаем значения полей (если они уже есть на странице)
-            const oldSearch = document.getElementById('activeSearch')?.value || '';
-            const oldStatus = document.getElementById('activeStatusFilter')?.value || '';
-
-            // Определяем статус фильтра: если передан param, он имеет приоритет
-            let statusFilter = oldStatus;
-            if (param === 'overdue') statusFilter = 'просрочена';
-            else if (param === 'soon') statusFilter = 'soon';
-
-            // Если параметр был передан, но мы уже на странице активных, сохраним его как текущий параметр
-            if (param) currentParam = param;
-
-            const active = rentals.filter(r => r.status === 'активна');
-
+        window._showClientHistory = function(clientId) {
+            const client = getClientById(clientId);
+            if (!client) return;
+            const clientRentals = rentals.filter(r => r.client_id === clientId).sort((a, b) => (b.id || '').localeCompare(a.id || ''));
             let html = `
-            <h1>Активные аренды</h1>
-            <p class="text-muted">Всего активных: ${active.length}</p>
-            <div class="filter-section">
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <input type="text" id="activeSearch" class="form-control" placeholder="Поиск по клиенту или инструменту" value="${oldSearch}" oninput="renderActiveRentals()">
-                    </div>
-                    <div class="col-md-3">
-                        <select id="activeStatusFilter" class="form-select" onchange="renderActiveRentals()">
-                            <option value="">Все статусы</option>
-                            <option value="активна" ${statusFilter === 'активна' ? 'selected' : ''}>Активна</option>
-                            <option value="просрочена" ${statusFilter === 'просрочена' ? 'selected' : ''}>Просрочена</option>
-                            <option value="soon" ${statusFilter === 'soon' ? 'selected' : ''}>Скоро возврат</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
+            <h1>История аренд: ${client.name}</h1>
+            <p><strong>Телефон:</strong> ${client.phone || '—'} &nbsp; <strong>Email:</strong> ${client.email || '—'}</p>
+            <button class="btn btn-secondary mb-3" onclick="navigate('clients')">← Назад к клиентам</button>
             <div class="table-responsive"><table class="table table-striped table-hover">
                 <thead><tr>
-                    <th>№</th><th>Клиент</th><th>Инструмент</th><th>Цена/сутки</th><th>Выдача</th><th>План возврат</th><th>Дней</th><th>Сумма</th><th>Комментарий</th><th>Статус</th>
+                    <th>№</th><th>Инструмент</th><th>Выдача</th><th>План возврат</th><th>Факт возврат</th><th>Цена/сутки</th><th>Сумма</th><th>Залог</th><th>Залог возвращён</th><th>Состояние</th><th>Статус</th>
                 </tr></thead>
-                <tbody>`;
-            const search = oldSearch.toLowerCase();
+                <tbody>
+                ${clientRentals.length === 0 ? '<tr><td colspan="11" class="text-center text-muted">У клиента нет аренд</td></tr>' :
+                    clientRentals.map(r => {
+                        const tool = getToolById(r.tool_id);
+                        return `<tr>
+                            <td>${r.rental_number || '—'}</td>
+                            <td>${tool ? tool.model : 'Удалён'}</td>
+                            <td>${formatDate(r.issue_date)}</td>
+                            <td>${formatDate(r.planned_return)}</td>
+                            <td>${formatDate(r.actual_return)}</td>
+                            <td>${r.price_per_day || 0} ₽</td>
+                            <td>${r.total_cost || 0} ₽</td>
+                            <td>${r.deposit || 0} ₽</td>
+                            <td>${r.deposit_returned ? '✅ Да' : '❌ Нет'}</td>
+                            <td>${r.return_condition || '—'}</td>
+                            <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
+                        </tr>`;
+                    }).join('')
+                }
+                </tbody></table></div>`;
+            render(html);
+        };
+
+        window._addClient = function() {
+            render(`
+            <h1>Добавить клиента</h1>
+            <form onsubmit="window._saveClient(event)">
+                <div class="mb-3"><label class="form-label">ФИО / Организация</label><input id="fName" class="form-control" required /></div>
+                <div class="mb-3"><label class="form-label">Телефон</label><input id="fPhone" class="form-control" required /></div>
+                <div class="mb-3"><label class="form-label">Email</label><input id="fEmail" class="form-control" /></div>
+                <input type="hidden" id="fEditClientId" value="" />
+                <button type="submit" class="btn btn-success">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._editClient = function(id) {
+            const client = getClientById(id);
+            if (!client) return;
+            render(`
+            <h1>Редактировать клиента</h1>
+            <form onsubmit="window._saveClient(event)">
+                <div class="mb-3"><label class="form-label">ФИО / Организация</label><input id="fName" class="form-control" value="${client.name || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Телефон</label><input id="fPhone" class="form-control" value="${client.phone || ''}" required /></div>
+                <div class="mb-3"><label class="form-label">Email</label><input id="fEmail" class="form-control" value="${client.email || ''}" /></div>
+                <input type="hidden" id="fEditClientId" value="${id}" />
+                <button type="submit" class="btn btn-success">Обновить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._saveClient = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('fEditClientId').value;
+            const data = {
+                name: document.getElementById('fName').value.trim(),
+                phone: document.getElementById('fPhone').value.trim(),
+                email: document.getElementById('fEmail').value.trim()
+            };
+            if (id) {
+                const { error } = await supabase.from('clients').update(data).eq('id', id);
+                if (error) { alert('Ошибка обновления: ' + error.message); return; }
+            } else {
+                const newClient = { id: genId(), ...data };
+                const { error } = await supabase.from('clients').insert(newClient);
+                if (error) { alert('Ошибка добавления: ' + error.message); return; }
+            }
+            await refreshAllData();
+            navigate('clients');
+        };
+
+        window._deleteClient = async function(id) {
+            if (!confirm('Удалить клиента?')) return;
+            const hasActive = rentals.some(r => r.client_id === id && r.status === 'активна');
+            if (hasActive) {
+                alert('Нельзя удалить клиента с активной арендой');
+                return;
+            }
+            const { error } = await supabase.from('clients').delete().eq('id', id);
+            if (error) { alert('Ошибка удаления: ' + error.message); return; }
+            await refreshAllData();
+            navigate('clients');
+        };
+
+        // ---------- ВЫДАТЬ ----------
+        function renderNewRental() {
+            const clientOpts = clients.map(c => `<option value="${c.id}">${c.name} (${c.phone})</option>`).join('');
+            const toolOpts = tools.filter(t => t.status === 'в наличии' || t.status === 'забронирован')
+                .map(t => {
+                    const label = t.status === 'забронирован' ? `🔒 ${t.model} (забронирован до ${formatDate(t.reserved_until)})` : `${t.model} (${t.inventory_number}) — ${t.price_per_day}₽/сут`;
+                    return `<option value="${t.id}">${label}</option>`;
+                }).join('');
+            const today = todayStr();
+
+            render(`
+            <h1>Оформить аренду</h1>
+            <form onsubmit="window._saveRental(event)">
+                <div class="mb-3">
+                    <label class="form-label">Клиент</label>
+                    <select id="rClient" class="form-select" required>
+                        <option value="">— Выберите —</option>
+                        ${clientOpts}
+                    </select>
+                    <small><a href="#" onclick="window._addClient(); return false;">➕ Добавить нового клиента</a></small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Инструмент</label>
+                    <select id="rTool" class="form-select" required>
+                        <option value="">— Выберите —</option>
+                        ${toolOpts}
+                    </select>
+                </div>
+                <div class="mb-3"><label class="form-label">Дата выдачи</label><input id="rDate" type="date" class="form-control" value="${today}" required /></div>
+                <div class="mb-3"><label class="form-label">Количество дней</label><input id="rDays" type="number" class="form-control" value="1" min="1" required /></div>
+                <div class="mb-3">
+                    <label class="form-label">Комментарий</label>
+                    <textarea id="rComment" class="form-control" rows="2" placeholder="Особые условия, повреждения и т.п."></textarea>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rReserve">
+                        <label class="form-check-label" for="rReserve">
+                            Забронировать (инструмент будет недоступен для других до даты выдачи)
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Выдать</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('dashboard')">Отмена</button>
+            </form>
+            `);
+        }
+
+        window._saveRental = async function(e) {
+            e.preventDefault();
+            const clientId = document.getElementById('rClient').value;
+            const toolId = document.getElementById('rTool').value;
+            const days = parseInt(document.getElementById('rDays').value) || 1;
+            const issueDate = document.getElementById('rDate').value;
+            const comment = document.getElementById('rComment').value.trim();
+            const reserve = document.getElementById('rReserve').checked;
+
+            if (!clientId) { alert('Выберите клиента'); return; }
+            if (!toolId) { alert('Выберите инструмент'); return; }
+
+            const tool = getToolById(toolId);
+            if (!tool || (tool.status !== 'в наличии' && tool.status !== 'забронирован')) {
+                alert('Инструмент недоступен');
+                return;
+            }
+
+            if (tool.status === 'забронирован' && tool.reserved_until) {
+                if (new Date(tool.reserved_until) < new Date(issueDate)) {
+                    alert('Бронь на этот инструмент истекла. Обновите страницу.');
+                    return;
+                }
+            }
+
+            const planned = new Date(issueDate);
+            planned.setDate(planned.getDate() + days);
+
+            const rental = {
+                id: genId(),
+                rental_number: 'AR-' + Date.now().toString(36).toUpperCase(),
+                client_id: clientId,
+                tool_id: toolId,
+                issue_date: issueDate,
+                planned_return: planned.toISOString().split('T')[0],
+                actual_return: null,
+                price_per_day: tool.price_per_day,
+                total_cost: tool.price_per_day * days,
+                deposit: tool.deposit,
+                status: 'активна',
+                return_condition: '',
+                comment: comment,
+                deposit_returned: false
+            };
+
+            if (reserve && tool.status === 'в наличии') {
+                const reserveUntil = new Date(issueDate);
+                reserveUntil.setDate(reserveUntil.getDate() - 1);
+                const { error: reserveError } = await supabase.from('tools').update({
+                    status: 'забронирован',
+                    reserved_until: reserveUntil.toISOString().split('T')[0]
+                }).eq('id', toolId);
+                if (reserveError) { alert('Ошибка бронирования: ' + reserveError.message); return; }
+            }
+
+            const { error: rentalError } = await supabase.from('rentals').insert(rental);
+            if (rentalError) { alert('Ошибка создания аренды: ' + rentalError.message); return; }
+
+            if (!reserve && tool.status === 'в наличии') {
+                const { error: toolError } = await supabase.from('tools').update({ status: 'в аренде' }).eq('id', toolId);
+                if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
+            } else if (reserve) {
+                const { error: toolError } = await supabase.from('tools').update({ 
+                    status: 'в аренде',
+                    reserved_until: null
+                }).eq('id', toolId);
+                if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
+            }
+
+            await refreshAllData();
+            navigate('dashboard');
+        };
+
+        // ---------- АКТИВНЫЕ АРЕНДЫ ----------
+        function renderActiveRentals() {
+            // Сохраняем текущие значения фильтров в глобальные переменные
+            activeSearch = document.getElementById('activeSearch')?.value || activeSearch;
+            activeStatus = document.getElementById('activeStatusFilter')?.value || activeStatus;
+
+            const search = activeSearch.toLowerCase();
+            const statusFilter = activeStatus;
+            const active = rentals.filter(r => r.status === 'активна');
             let filtered = active;
             if (search) filtered = filtered.filter(r => {
                 const client = getClientById(r.client_id);
@@ -447,46 +701,192 @@
                     return diff >= 0 && diff <= 2;
                 });
             }
-            if (filtered.length === 0) {
-                html += `<tr><td colspan="10" class="text-center text-muted">Нет активных аренд</td></tr>`;
-            } else {
-                filtered.forEach(r => {
-                    const client = getClientById(r.client_id);
-                    const tool = getToolById(r.tool_id);
-                    const days = daysBetween(r.issue_date, r.planned_return);
-                    const isOverdue = new Date(r.planned_return) < today;
-                    const statusDisplay = isOverdue ? 'просрочена' : r.status;
-                    html += `<tr>
-                        <td>${r.rental_number || '—'}</td>
-                        <td>${client ? client.name : 'Удалён'}</td>
-                        <td>${tool ? tool.model : 'Удалён'}</td>
-                        <td>${r.price_per_day || 0} ₽</td>
-                        <td>${formatDate(r.issue_date)}</td>
-                        <td>${formatDate(r.planned_return)}</td>
-                        <td>${days}</td>
-                        <td>${r.total_cost || 0} ₽</td>
-                        <td>${r.comment || '—'}</td>
-                        <td><span class="badge bg-${getStatusColor(statusDisplay)} rental-badge">${statusDisplay}</span></td>
-                    </tr>`;
-                });
-            }
-            html += `</tbody></table></div>
+
+            let html = `
+            <h1>Активные аренды</h1>
+            <p class="text-muted">Всего активных: ${active.length}</p>
+            <div class="filter-section">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" id="activeSearch" class="form-control" placeholder="Поиск по клиенту или инструменту" value="${activeSearch}" oninput="activeSearch=this.value; renderActiveRentals();">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="activeStatusFilter" class="form-select" onchange="activeStatus=this.value; renderActiveRentals();">
+                            <option value="">Все статусы</option>
+                            <option value="активна" ${activeStatus === 'активна' ? 'selected' : ''}>Активна</option>
+                            <option value="просрочена" ${activeStatus === 'просрочена' ? 'selected' : ''}>Просрочена</option>
+                            <option value="soon" ${activeStatus === 'soon' ? 'selected' : ''}>Скоро возврат</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive"><table class="table table-striped table-hover">
+                <thead><tr>
+                    <th>№</th><th>Клиент</th><th>Инструмент</th><th>Цена/сутки</th><th>Выдача</th><th>План возврат</th><th>Дней</th><th>Сумма</th><th>Комментарий</th><th>Статус</th>
+                </tr></thead>
+                <tbody>
+                ${filtered.length === 0 ? '<tr><td colspan="10" class="text-center text-muted">Нет активных аренд</td></tr>' :
+                    filtered.map(r => {
+                        const client = getClientById(r.client_id);
+                        const tool = getToolById(r.tool_id);
+                        const days = daysBetween(r.issue_date, r.planned_return);
+                        const isOverdue = new Date(r.planned_return) < today;
+                        const statusDisplay = isOverdue ? 'просрочена' : r.status;
+                        return `<tr>
+                            <td>${r.rental_number || '—'}</td>
+                            <td>${client ? client.name : 'Удалён'}</td>
+                            <td>${tool ? tool.model : 'Удалён'}</td>
+                            <td>${r.price_per_day || 0} ₽</td>
+                            <td>${formatDate(r.issue_date)}</td>
+                            <td>${formatDate(r.planned_return)}</td>
+                            <td>${days}</td>
+                            <td>${r.total_cost || 0} ₽</td>
+                            <td>${r.comment || '—'}</td>
+                            <td><span class="badge bg-${getStatusColor(statusDisplay)} rental-badge">${statusDisplay}</span></td>
+                        </tr>`;
+                    }).join('')
+                }
+                </tbody></table></div>
             <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
             render(html);
         }
 
         // ---------- ВОЗВРАТ ----------
-        function renderReturnRental() { /* ... */ }
-        window._returnRental = async function(sendToRepair) { /* ... */ };
+        function renderReturnRental() {
+            const active = rentals.filter(r => r.status === 'активна');
+            let opts = active.map(r => {
+                const client = getClientById(r.client_id);
+                const tool = getToolById(r.tool_id);
+                const label = `${r.rental_number} — ${tool ? tool.model : 'Удалён'} (${client ? client.name : 'Удалён'})`;
+                return `<option value="${r.id}">${label}</option>`;
+            }).join('');
+            const today = todayStr();
+
+            let html = `
+            <h1>Возврат инструмента</h1>
+            ${active.length === 0 ? '<div class="alert alert-info">Нет активных аренд.</div>' : `
+            <form onsubmit="return false;">
+                <div class="mb-3">
+                    <label class="form-label">Активная аренда</label>
+                    <select id="retRental" class="form-select" required>
+                        <option value="">— Выберите —</option>
+                        ${opts}
+                    </select>
+                </div>
+                <div class="mb-3"><label class="form-label">Фактическая дата возврата</label><input id="retDate" type="date" class="form-control" value="${today}" required /></div>
+                <div class="mb-3">
+                    <label class="form-label">Состояние инструмента</label>
+                    <select id="retCondition" class="form-select">
+                        <option value="Отличное">Отличное</option>
+                        <option value="Хорошее" selected>Хорошее</option>
+                        <option value="Требует ремонта">Требует ремонта</option>
+                        <option value="Неисправен">Неисправен</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="retDepositReturned">
+                        <label class="form-check-label" for="retDepositReturned">Залог возвращён</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-success" onclick="window._returnRental(false)">Принять возврат</button>
+                    <button type="button" class="btn btn-warning" onclick="window._returnRental(true)">Отправить на ТО</button>
+                </div>
+            </form>`}
+            <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
+            render(html);
+        }
+
+        window._returnRental = async function(sendToRepair) {
+            const rentalId = document.getElementById('retRental').value;
+            const actualReturn = document.getElementById('retDate').value;
+            const condition = document.getElementById('retCondition') ? document.getElementById('retCondition').value : 'Хорошее';
+            const depositReturned = document.getElementById('retDepositReturned').checked;
+            if (!rentalId) { alert('Выберите аренду'); return; }
+
+            const rental = rentals.find(r => r.id === rentalId);
+            if (!rental) return;
+
+            const planned = new Date(rental.planned_return);
+            const actual = new Date(actualReturn);
+            let totalCost = rental.total_cost;
+            if (actual > planned) {
+                const extraDays = Math.ceil((actual - planned) / (1000 * 60 * 60 * 24));
+                totalCost += extraDays * rental.price_per_day;
+            }
+
+            const { error: rentalError } = await supabase.from('rentals').update({
+                actual_return: actualReturn,
+                status: 'закрыта',
+                return_condition: condition,
+                total_cost: totalCost,
+                deposit_returned: depositReturned
+            }).eq('id', rentalId);
+            if (rentalError) { alert('Ошибка обновления аренды: ' + rentalError.message); return; }
+
+            const toolId = rental.tool_id;
+            const toolUpdate = sendToRepair
+                ? { status: 'на обслуживании', repair_reason: condition, repair_date: actualReturn }
+                : { status: 'в наличии', repair_reason: '', repair_date: null };
+            const { error: toolError } = await supabase.from('tools').update(toolUpdate).eq('id', toolId);
+            if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
+
+            await refreshAllData();
+            navigate('dashboard');
+        };
 
         // ---------- ТО ----------
-        function renderRepair() { /* ... */ }
-        window._returnFromRepair = async function(toolId) { /* ... */ };
+        function renderRepair() {
+            const repairTools = tools.filter(t => t.status === 'на обслуживании');
+            let html = `
+            <h1>🔧 Инструменты на ТО</h1>
+            ${repairTools.length === 0 ? '<div class="alert alert-info">Нет инструментов на ТО.</div>' : `
+            <div class="table-responsive"><table class="table table-hover">
+                <thead><tr><th>Инв. №</th><th>Модель</th><th>Причина</th><th>Дата отправки</th><th>Действие</th></tr></thead>
+                <tbody>
+                ${repairTools.map(t => `
+                    <tr>
+                        <td>${t.inventory_number || '—'}</td>
+                        <td>${t.model || '—'}</td>
+                        <td>${t.repair_reason || '—'}</td>
+                        <td>${formatDate(t.repair_date)}</td>
+                        <td><button class="btn btn-sm btn-success" onclick="window._returnFromRepair('${t.id}')">Вернуть с ТО</button></td>
+                    </tr>
+                `).join('')}
+                </tbody></table></div>`}
+            `;
+            render(html);
+        }
 
-        // ---------- ИСТОРИЯ (исправлено) ----------
+        window._returnFromRepair = async function(toolId) {
+            if (!confirm('Вернуть инструмент с ТО в наличие?')) return;
+            const { error } = await supabase.from('tools').update({
+                status: 'в наличии',
+                repair_reason: '',
+                repair_date: null
+            }).eq('id', toolId);
+            if (error) { alert('Ошибка: ' + error.message); return; }
+            await refreshAllData();
+            navigate('repair');
+        };
+
+        // ---------- ИСТОРИЯ ----------
         function renderHistory() {
-            const oldSearch = document.getElementById('historySearch')?.value || '';
-            const oldFilter = document.getElementById('historyFilter')?.value || 'all';
+            historySearch = document.getElementById('historySearch')?.value || historySearch;
+            historyFilter = document.getElementById('historyFilter')?.value || historyFilter;
+
+            const search = historySearch.toLowerCase();
+            const filter = historyFilter;
+            let filtered = rentals;
+            if (filter === 'active') filtered = rentals.filter(r => r.status === 'активна');
+            else if (filter === 'closed') filtered = rentals.filter(r => r.status === 'закрыта');
+            if (search) filtered = filtered.filter(r => {
+                const client = getClientById(r.client_id);
+                const tool = getToolById(r.tool_id);
+                return (client?.name?.toLowerCase().includes(search) || tool?.model?.toLowerCase().includes(search) || r.rental_number?.toLowerCase().includes(search));
+            });
+            const sorted = [...filtered].sort((a, b) => (b.id || '').localeCompare(a.id || ''));
 
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -496,13 +896,13 @@
             <div class="filter-section">
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <input type="text" id="historySearch" class="form-control" placeholder="Поиск по клиенту или инструменту" value="${oldSearch}" oninput="renderHistory()">
+                        <input type="text" id="historySearch" class="form-control" placeholder="Поиск по клиенту или инструменту" value="${historySearch}" oninput="historySearch=this.value; renderHistory();">
                     </div>
                     <div class="col-md-3">
-                        <select id="historyFilter" class="form-select" onchange="renderHistory()">
-                            <option value="all" ${oldFilter === 'all' ? 'selected' : ''}>Все</option>
-                            <option value="active" ${oldFilter === 'active' ? 'selected' : ''}>Активные</option>
-                            <option value="closed" ${oldFilter === 'closed' ? 'selected' : ''}>Закрытые</option>
+                        <select id="historyFilter" class="form-select" onchange="historyFilter=this.value; renderHistory();">
+                            <option value="all" ${historyFilter === 'all' ? 'selected' : ''}>Все</option>
+                            <option value="active" ${historyFilter === 'active' ? 'selected' : ''}>Активные</option>
+                            <option value="closed" ${historyFilter === 'closed' ? 'selected' : ''}>Закрытые</option>
                         </select>
                     </div>
                 </div>
@@ -511,55 +911,121 @@
                 <thead><tr>
                     <th>№</th><th>Клиент</th><th>Инструмент</th><th>Выдача</th><th>План возврат</th><th>Факт возврат</th><th>Сумма</th><th>Залог</th><th>Залог возвращён</th><th>Состояние</th><th>Комментарий</th><th>Статус</th><th>Действие</th>
                 </tr></thead>
-                <tbody>`;
-            const search = oldSearch.toLowerCase();
-            let filtered = rentals;
-            if (oldFilter === 'active') filtered = rentals.filter(r => r.status === 'активна');
-            else if (oldFilter === 'closed') filtered = rentals.filter(r => r.status === 'закрыта');
-            if (search) filtered = filtered.filter(r => {
-                const client = getClientById(r.client_id);
-                const tool = getToolById(r.tool_id);
-                return (client?.name?.toLowerCase().includes(search) || tool?.model?.toLowerCase().includes(search) || r.rental_number?.toLowerCase().includes(search));
-            });
-            const sorted = [...filtered].sort((a, b) => (b.id || '').localeCompare(a.id || ''));
-            if (sorted.length === 0) {
-                html += `<tr><td colspan="13" class="text-center text-muted">Нет записей</td></tr>`;
-            } else {
-                sorted.forEach(r => {
-                    const client = getClientById(r.client_id);
-                    const tool = getToolById(r.tool_id);
-                    const canDelete = r.status !== 'активна';
-                    html += `<tr>
-                        <td>${r.rental_number || '—'}</td>
-                        <td>${client ? client.name : 'Удалён'}</td>
-                        <td>${tool ? tool.model : 'Удалён'}</td>
-                        <td>${formatDate(r.issue_date)}</td>
-                        <td>${formatDate(r.planned_return)}</td>
-                        <td>${formatDate(r.actual_return)}</td>
-                        <td>${r.total_cost || 0} ₽</td>
-                        <td>${r.deposit || 0} ₽</td>
-                        <td>${r.deposit_returned ? '✅ Да' : '❌ Нет'}</td>
-                        <td>${r.return_condition || '—'}</td>
-                        <td>${r.comment || '—'}</td>
-                        <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
-                        <td>${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="window._deleteRental('${r.id}')">🗑</button>` : '<span class="text-muted">—</span>'}</td>
-                    </tr>`;
-                });
-            }
-            html += `</tbody></table></div>`;
+                <tbody>
+                ${sorted.length === 0 ? '<tr><td colspan="13" class="text-center text-muted">Нет записей</td></tr>' :
+                    sorted.map(r => {
+                        const client = getClientById(r.client_id);
+                        const tool = getToolById(r.tool_id);
+                        const canDelete = r.status !== 'активна';
+                        return `<tr>
+                            <td>${r.rental_number || '—'}</td>
+                            <td>${client ? client.name : 'Удалён'}</td>
+                            <td>${tool ? tool.model : 'Удалён'}</td>
+                            <td>${formatDate(r.issue_date)}</td>
+                            <td>${formatDate(r.planned_return)}</td>
+                            <td>${formatDate(r.actual_return)}</td>
+                            <td>${r.total_cost || 0} ₽</td>
+                            <td>${r.deposit || 0} ₽</td>
+                            <td>${r.deposit_returned ? '✅ Да' : '❌ Нет'}</td>
+                            <td>${r.return_condition || '—'}</td>
+                            <td>${r.comment || '—'}</td>
+                            <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
+                            <td>${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="window._deleteRental('${r.id}')">🗑</button>` : '<span class="text-muted">—</span>'}</td>
+                        </tr>`;
+                    }).join('')
+                }
+                </tbody></table></div>`;
             render(html);
         }
 
-        window._exportCSV = function() { /* ... */ };
-        window._deleteRental = async function(rentalId) { /* ... */ };
+        window._exportCSV = function() {
+            if (rentals.length === 0) { alert('Нет данных для экспорта'); return; }
+            let csv = '№,Клиент,Инструмент,Выдача,План возврат,Факт возврат,Цена/сутки,Сумма,Залог,Залог возвращён,Состояние,Комментарий,Статус\n';
+            rentals.forEach(r => {
+                const client = getClientById(r.client_id);
+                const tool = getToolById(r.tool_id);
+                csv += `"${r.rental_number || ''}","${client ? client.name : ''}","${tool ? tool.model : ''}",`;
+                csv += `"${formatDate(r.issue_date)}","${formatDate(r.planned_return)}","${formatDate(r.actual_return)}",`;
+                csv += `"${r.price_per_day || 0}","${r.total_cost || 0}","${r.deposit || 0}","${r.deposit_returned ? 'Да' : 'Нет'}",`;
+                csv += `"${r.return_condition || ''}","${r.comment || ''}","${r.status || ''}"\n`;
+            });
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `аренды_${todayStr()}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        };
+
+        window._deleteRental = async function(rentalId) {
+            if (!confirm('Удалить эту аренду? Это действие необратимо.')) return;
+            const rental = rentals.find(r => r.id === rentalId);
+            if (!rental) return;
+            if (rental.status === 'активна') {
+                alert('Нельзя удалить активную аренду. Сначала верните инструмент.');
+                return;
+            }
+            const { error } = await supabase.from('rentals').delete().eq('id', rentalId);
+            if (error) { alert('Ошибка удаления: ' + error.message); return; }
+            await refreshAllData();
+            renderHistory();
+        };
 
         // ---------- АВТОРИЗАЦИЯ ----------
-        window.login = async function(e) { /* ... */ };
-        window.register = async function(e) { /* ... */ };
-        window.logout = async function() { /* ... */ };
-        window.showRegister = function() { /* ... */ };
-        window.showLogin = function() { /* ... */ };
+        window.login = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert('Ошибка входа: ' + error.message);
+                return;
+            }
+            if (data.user) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('mainNav').style.display = 'flex';
+                await refreshAllData();
+                navigate('dashboard');
+            }
+        };
 
+        window.register = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) {
+                alert('Ошибка регистрации: ' + error.message);
+                return;
+            }
+            alert('Регистрация успешна! Теперь войдите.');
+            showLogin();
+        };
+
+        window.logout = async function() {
+            await supabase.auth.signOut();
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('registerPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('mainNav').style.display = 'none';
+            tools = []; clients = []; rentals = [];
+        };
+
+        window.showRegister = function() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('registerPage').classList.remove('hidden');
+        };
+
+        window.showLogin = function() {
+            document.getElementById('registerPage').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+        };
+
+        // ---------- ПРОВЕРКА СЕССИИ ----------
         async function checkSession() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
