@@ -10,12 +10,10 @@
         .card-dashboard { transition: 0.2s; }
         .card-dashboard:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .navbar-brand { font-weight: 600; }
-        .table-tools td { vertical-align: middle; }
         .rental-badge { font-size: 0.75rem; }
         .btn-edit { margin-right: 5px; }
         .login-container { max-width: 400px; margin: 50px auto; }
         .hidden { display: none; }
-        .pointer { cursor: pointer; }
         .chart-container {
             background: #f8f9fa;
             border-radius: 8px;
@@ -26,7 +24,7 @@
             display: flex;
             align-items: flex-end;
             height: 120px;
-            gap: 4px;
+            gap: 6px;
             padding-top: 10px;
         }
         .chart-bar-item {
@@ -81,6 +79,7 @@
                 <li class="nav-item"><a class="nav-link" href="#" data-page="clients">Клиенты</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="newRental">Выдать</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="activeRentals">Активные</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" data-page="bookings">Брони</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="returnRental">Вернуть</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="repair">🔧 ТО</a></li>
                 <li class="nav-item"><a class="nav-link" href="#" data-page="history">📜 История</a></li>
@@ -95,7 +94,7 @@
 <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
 <div class="container" id="app">
     <div id="loginPage" class="login-container">
-        <h2 class="text-center mb-4">Вход в систему</h2>
+        <h2 class="text-center mb-4">Вход</h2>
         <form onsubmit="login(event)">
             <div class="mb-3"><label class="form-label">Email</label><input type="email" id="loginEmail" class="form-control" required /></div>
             <div class="mb-3"><label class="form-label">Пароль</label><input type="password" id="loginPassword" class="form-control" required /></div>
@@ -104,18 +103,16 @@
             <p class="text-center text-muted small">Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрируйтесь</a></p>
         </form>
     </div>
-
     <div id="registerPage" class="login-container hidden">
         <h2 class="text-center mb-4">Регистрация</h2>
         <form onsubmit="register(event)">
             <div class="mb-3"><label class="form-label">Email</label><input type="email" id="regEmail" class="form-control" required /></div>
-            <div class="mb-3"><label class="form-label">Пароль (минимум 6 символов)</label><input type="password" id="regPassword" class="form-control" required minlength="6" /></div>
+            <div class="mb-3"><label class="form-label">Пароль (≥6 символов)</label><input type="password" id="regPassword" class="form-control" required minlength="6" /></div>
             <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
             <hr />
             <p class="text-center text-muted small">Уже есть аккаунт? <a href="#" onclick="showLogin()">Войдите</a></p>
         </form>
     </div>
-
     <div id="mainApp" class="hidden"></div>
 </div>
 
@@ -135,7 +132,7 @@
             const map = {
                 'в наличии': 'success', 'в аренде': 'warning', 'на обслуживании': 'danger',
                 'забронирован': 'info', 'активна': 'warning', 'закрыта': 'secondary',
-                'просрочена': 'danger'
+                'просрочена': 'danger', 'забронирована': 'info'
             };
             return map[status] || 'secondary';
         }
@@ -155,33 +152,8 @@
         function getToolById(id) { return tools.find(t => t.id === id); }
         function getClientById(id) { return clients.find(c => c.id === id); }
 
-        // ----- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ФИЛЬТРОВ -----
-        let activeSearch = '';
-        let activeStatus = '';
-        let historySearch = '';
-        let historyFilter = 'all';
-        let toolsSearch = '';
-        let toolsStatus = '';
-        let clientsSearch = '';
-
         // ----- НАВИГАЦИЯ -----
-        function navigate(page, param) {
-            // Обновляем текущие фильтры из DOM, если они существуют
-            if (page === 'activeRentals') {
-                activeSearch = document.getElementById('activeSearch')?.value || activeSearch;
-                activeStatus = document.getElementById('activeStatusFilter')?.value || activeStatus;
-                if (param === 'overdue') activeStatus = 'просрочена';
-                else if (param === 'soon') activeStatus = 'soon';
-            } else if (page === 'history') {
-                historySearch = document.getElementById('historySearch')?.value || historySearch;
-                historyFilter = document.getElementById('historyFilter')?.value || historyFilter;
-            } else if (page === 'tools') {
-                toolsSearch = document.getElementById('toolSearch')?.value || toolsSearch;
-                toolsStatus = document.getElementById('toolStatusFilter')?.value || toolsStatus;
-            } else if (page === 'clients') {
-                clientsSearch = document.getElementById('clientSearch')?.value || clientsSearch;
-            }
-
+        function navigate(page) {
             document.querySelectorAll('#navList .nav-link').forEach(el => el.classList.remove('active'));
             const link = document.querySelector(`#navList .nav-link[data-page="${page}"]`);
             if (link) link.classList.add('active');
@@ -192,6 +164,7 @@
                 case 'clients':         renderClients(); break;
                 case 'newRental':       renderNewRental(); break;
                 case 'activeRentals':   renderActiveRentals(); break;
+                case 'bookings':        renderBookings(); break;
                 case 'returnRental':    renderReturnRental(); break;
                 case 'repair':          renderRepair(); break;
                 case 'history':         renderHistory(); break;
@@ -216,6 +189,7 @@
             const maintenance = tools.filter(t => t.status === 'на обслуживании').length;
             const reserved = tools.filter(t => t.status === 'забронирован').length;
             const activeRentals = rentals.filter(r => r.status === 'активна').length;
+            const bookings = rentals.filter(r => r.status === 'забронирована').length;
             const today = todayStr();
             const revenueToday = rentals.filter(r => r.status === 'закрыта' && r.actual_return === today).reduce((sum, r) => sum + (r.total_cost || 0), 0);
             const totalDeposits = rentals.filter(r => r.status === 'закрыта' && !r.deposit_returned).reduce((sum, r) => sum + (r.deposit || 0), 0);
@@ -232,7 +206,8 @@
                 chartData.push({ date: dateStr, revenue: dayRevenue });
             }
             const maxRevenue = Math.max(...chartData.map(d => d.revenue), 1);
-            const recent = [...rentals].sort((a, b) => (b.id || '').localeCompare(a.id || '')).slice(0, 5);
+
+            const recent = [...rentals].filter(r => r.status !== 'забронирована').sort((a, b) => (b.id || '').localeCompare(a.id || '')).slice(0, 5);
 
             let html = `
             <h1 class="mb-4">Дашборд</h1>
@@ -243,7 +218,7 @@
                         <div class="card-body">
                             <h5>⚠️ Просрочено: ${overdue.length}</h5>
                             <p class="small mb-0">${overdue.map(r => { const c = getClientById(r.client_id); const t = getToolById(r.tool_id); return `${c ? c.name : '—'} (${t ? t.model : '—'})`; }).join(', ')}</p>
-                            <a href="#" onclick="navigate('activeRentals', 'overdue')" class="btn btn-sm btn-light mt-2">Посмотреть</a>
+                            <a href="#" onclick="navigate('activeRentals')" class="btn btn-sm btn-light mt-2">Посмотреть</a>
                         </div>
                     </div>
                 </div>
@@ -254,7 +229,7 @@
                         <div class="card-body">
                             <h5>🔄 Скоро возврат: ${returningSoon.length}</h5>
                             <p class="small mb-0">${returningSoon.map(r => { const c = getClientById(r.client_id); const t = getToolById(r.tool_id); return `${c ? c.name : '—'} (${t ? t.model : '—'})`; }).join(', ')}</p>
-                            <a href="#" onclick="navigate('activeRentals', 'soon')" class="btn btn-sm btn-dark mt-2">Посмотреть</a>
+                            <a href="#" onclick="navigate('activeRentals')" class="btn btn-sm btn-dark mt-2">Посмотреть</a>
                         </div>
                     </div>
                 </div>
@@ -268,7 +243,7 @@
                 <div class="col-md-2 col-6"><div class="card text-bg-warning card-dashboard"><div class="card-body"><h5>В аренде</h5><h2>${rented}</h2></div></div></div>
                 <div class="col-md-2 col-6"><div class="card text-bg-info card-dashboard"><div class="card-body"><h5>Забронировано</h5><h2>${reserved}</h2></div></div></div>
                 <div class="col-md-2 col-6"><div class="card text-bg-danger card-dashboard"><div class="card-body"><h5>На ТО</h5><h2>${maintenance}</h2></div></div></div>
-                <div class="col-md-2 col-6"><div class="card text-bg-secondary card-dashboard"><div class="card-body"><h5>Активных</h5><h2>${activeRentals}</h2></div></div></div>
+                <div class="col-md-2 col-6"><div class="card text-bg-secondary card-dashboard"><div class="card-body"><h5>Броней</h5><h2>${bookings}</h2></div></div></div>
             </div>
 
             <div class="row mt-4 g-3">
@@ -282,7 +257,7 @@
                 <div class="chart-bar">
                     ${chartData.map(d => `
                     <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                        <div class="chart-bar-item" style="height: ${(d.revenue / maxRevenue) * 100}%; min-height: 4px; width: 100%;">
+                        <div class="chart-bar-item" style="height: ${(d.revenue / maxRevenue) * 100}%; min-height: 4px; width: 100%; background: ${d.revenue > 0 ? '#0d6efd' : '#e9ecef'};">
                             <span class="tooltip-text">${d.revenue} ₽</span>
                         </div>
                         <div class="chart-label">${formatDateShort(d.date)}</div>
@@ -305,14 +280,17 @@
             render(html);
         }
 
-        // ---------- ИНСТРУМЕНТЫ ----------
+        // ---------- ИНСТРУМЕНТЫ (с поиском и фильтром) ----------
         function renderTools() {
-            // Сохраняем текущие значения фильтров (из глобальных переменных)
-            const search = toolsSearch.toLowerCase();
-            const statusFilter = toolsStatus;
+            // Читаем значения из DOM, если они существуют, иначе пустые
+            const searchInput = document.getElementById('toolSearch');
+            const statusSelect = document.getElementById('toolStatusFilter');
+            const search = searchInput ? searchInput.value : '';
+            const status = statusSelect ? statusSelect.value : '';
+
             let filtered = tools;
-            if (search) filtered = filtered.filter(t => t.model?.toLowerCase().includes(search) || t.inventory_number?.toLowerCase().includes(search));
-            if (statusFilter) filtered = filtered.filter(t => t.status === statusFilter);
+            if (search) filtered = filtered.filter(t => t.model?.toLowerCase().includes(search.toLowerCase()) || t.inventory_number?.toLowerCase().includes(search.toLowerCase()));
+            if (status) filtered = filtered.filter(t => t.status === status);
 
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -322,15 +300,15 @@
             <div class="filter-section">
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <input type="text" id="toolSearch" class="form-control" placeholder="Поиск по модели или инв. №" value="${toolsSearch}" oninput="toolsSearch=this.value; renderTools();">
+                        <input type="text" id="toolSearch" class="form-control" placeholder="Поиск по модели или инв. №" value="${search}" oninput="renderTools()">
                     </div>
                     <div class="col-md-3">
-                        <select id="toolStatusFilter" class="form-select" onchange="toolsStatus=this.value; renderTools();">
+                        <select id="toolStatusFilter" class="form-select" onchange="renderTools()">
                             <option value="">Все статусы</option>
-                            <option value="в наличии" ${toolsStatus === 'в наличии' ? 'selected' : ''}>В наличии</option>
-                            <option value="в аренде" ${toolsStatus === 'в аренде' ? 'selected' : ''}>В аренде</option>
-                            <option value="забронирован" ${toolsStatus === 'забронирован' ? 'selected' : ''}>Забронирован</option>
-                            <option value="на обслуживании" ${toolsStatus === 'на обслуживании' ? 'selected' : ''}>На ТО</option>
+                            <option value="в наличии" ${status === 'в наличии' ? 'selected' : ''}>В наличии</option>
+                            <option value="в аренде" ${status === 'в аренде' ? 'selected' : ''}>В аренде</option>
+                            <option value="забронирован" ${status === 'забронирован' ? 'selected' : ''}>Забронирован</option>
+                            <option value="на обслуживании" ${status === 'на обслуживании' ? 'selected' : ''}>На ТО</option>
                         </select>
                     </div>
                 </div>
@@ -362,11 +340,11 @@
             render(`
             <h1>Добавить инструмент</h1>
             <form onsubmit="window._saveTool(event)">
-                <div class="mb-3"><label class="form-label">Инв. номер</label><input id="fInv" class="form-control" required /></div>
-                <div class="mb-3"><label class="form-label">Категория</label><input id="fCat" class="form-control" required /></div>
-                <div class="mb-3"><label class="form-label">Модель</label><input id="fModel" class="form-control" required /></div>
-                <div class="mb-3"><label class="form-label">Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" required /></div>
-                <div class="mb-3"><label class="form-label">Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" required /></div>
+                <div class="mb-3"><label>Инв. номер</label><input id="fInv" class="form-control" required /></div>
+                <div class="mb-3"><label>Категория</label><input id="fCat" class="form-control" required /></div>
+                <div class="mb-3"><label>Модель</label><input id="fModel" class="form-control" required /></div>
+                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" required /></div>
+                <div class="mb-3"><label>Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" required /></div>
                 <input type="hidden" id="fEditId" value="" />
                 <button type="submit" class="btn btn-success">Сохранить</button>
                 <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
@@ -380,11 +358,11 @@
             render(`
             <h1>Редактировать инструмент</h1>
             <form onsubmit="window._saveTool(event)">
-                <div class="mb-3"><label class="form-label">Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventory_number || ''}" required /></div>
-                <div class="mb-3"><label class="form-label">Категория</label><input id="fCat" class="form-control" value="${tool.category || ''}" required /></div>
-                <div class="mb-3"><label class="form-label">Модель</label><input id="fModel" class="form-control" value="${tool.model || ''}" required /></div>
-                <div class="mb-3"><label class="form-label">Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.price_per_day || 0}" required /></div>
-                <div class="mb-3"><label class="form-label">Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" value="${tool.deposit || 0}" required /></div>
+                <div class="mb-3"><label>Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventory_number || ''}" required /></div>
+                <div class="mb-3"><label>Категория</label><input id="fCat" class="form-control" value="${tool.category || ''}" required /></div>
+                <div class="mb-3"><label>Модель</label><input id="fModel" class="form-control" value="${tool.model || ''}" required /></div>
+                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.price_per_day || 0}" required /></div>
+                <div class="mb-3"><label>Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" value="${tool.deposit || 0}" required /></div>
                 <input type="hidden" id="fEditId" value="${id}" />
                 <button type="submit" class="btn btn-success">Обновить</button>
                 <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
@@ -422,11 +400,13 @@
             navigate('tools');
         };
 
-        // ---------- КЛИЕНТЫ ----------
+        // ---------- КЛИЕНТЫ (с поиском) ----------
         function renderClients() {
-            const search = clientsSearch.toLowerCase();
+            const searchInput = document.getElementById('clientSearch');
+            const search = searchInput ? searchInput.value : '';
+
             let filtered = clients;
-            if (search) filtered = filtered.filter(c => c.name?.toLowerCase().includes(search) || c.phone?.includes(search));
+            if (search) filtered = filtered.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()) || c.phone?.includes(search));
 
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -436,7 +416,7 @@
             <div class="filter-section">
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <input type="text" id="clientSearch" class="form-control" placeholder="Поиск по имени или телефону" value="${clientsSearch}" oninput="clientsSearch=this.value; renderClients();">
+                        <input type="text" id="clientSearch" class="form-control" placeholder="Поиск по имени или телефону" value="${search}" oninput="renderClients()">
                     </div>
                 </div>
             </div>
@@ -465,13 +445,13 @@
             let html = `
             <h1>История аренд: ${client.name}</h1>
             <p><strong>Телефон:</strong> ${client.phone || '—'} &nbsp; <strong>Email:</strong> ${client.email || '—'}</p>
-            <button class="btn btn-secondary mb-3" onclick="navigate('clients')">← Назад к клиентам</button>
+            <button class="btn btn-secondary mb-3" onclick="navigate('clients')">← Назад</button>
             <div class="table-responsive"><table class="table table-striped table-hover">
                 <thead><tr>
                     <th>№</th><th>Инструмент</th><th>Выдача</th><th>План возврат</th><th>Факт возврат</th><th>Цена/сутки</th><th>Сумма</th><th>Залог</th><th>Залог возвращён</th><th>Состояние</th><th>Статус</th>
                 </tr></thead>
                 <tbody>
-                ${clientRentals.length === 0 ? '<tr><td colspan="11" class="text-center text-muted">У клиента нет аренд</td></tr>' :
+                ${clientRentals.length === 0 ? '<tr><td colspan="11" class="text-center text-muted">Нет аренд</td></tr>' :
                     clientRentals.map(r => {
                         const tool = getToolById(r.tool_id);
                         return `<tr>
@@ -497,9 +477,9 @@
             render(`
             <h1>Добавить клиента</h1>
             <form onsubmit="window._saveClient(event)">
-                <div class="mb-3"><label class="form-label">ФИО / Организация</label><input id="fName" class="form-control" required /></div>
-                <div class="mb-3"><label class="form-label">Телефон</label><input id="fPhone" class="form-control" required /></div>
-                <div class="mb-3"><label class="form-label">Email</label><input id="fEmail" class="form-control" /></div>
+                <div class="mb-3"><label>ФИО</label><input id="fName" class="form-control" required /></div>
+                <div class="mb-3"><label>Телефон</label><input id="fPhone" class="form-control" required /></div>
+                <div class="mb-3"><label>Email</label><input id="fEmail" class="form-control" /></div>
                 <input type="hidden" id="fEditClientId" value="" />
                 <button type="submit" class="btn btn-success">Сохранить</button>
                 <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
@@ -513,9 +493,9 @@
             render(`
             <h1>Редактировать клиента</h1>
             <form onsubmit="window._saveClient(event)">
-                <div class="mb-3"><label class="form-label">ФИО / Организация</label><input id="fName" class="form-control" value="${client.name || ''}" required /></div>
-                <div class="mb-3"><label class="form-label">Телефон</label><input id="fPhone" class="form-control" value="${client.phone || ''}" required /></div>
-                <div class="mb-3"><label class="form-label">Email</label><input id="fEmail" class="form-control" value="${client.email || ''}" /></div>
+                <div class="mb-3"><label>ФИО</label><input id="fName" class="form-control" value="${client.name || ''}" required /></div>
+                <div class="mb-3"><label>Телефон</label><input id="fPhone" class="form-control" value="${client.phone || ''}" required /></div>
+                <div class="mb-3"><label>Email</label><input id="fEmail" class="form-control" value="${client.email || ''}" /></div>
                 <input type="hidden" id="fEditClientId" value="${id}" />
                 <button type="submit" class="btn btn-success">Обновить</button>
                 <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
@@ -545,9 +525,9 @@
 
         window._deleteClient = async function(id) {
             if (!confirm('Удалить клиента?')) return;
-            const hasActive = rentals.some(r => r.client_id === id && r.status === 'активна');
+            const hasActive = rentals.some(r => r.client_id === id && (r.status === 'активна' || r.status === 'забронирована'));
             if (hasActive) {
-                alert('Нельзя удалить клиента с активной арендой');
+                alert('Нельзя удалить клиента с активной арендой или броней');
                 return;
             }
             const { error } = await supabase.from('clients').delete().eq('id', id);
@@ -556,7 +536,7 @@
             navigate('clients');
         };
 
-        // ---------- ВЫДАТЬ ----------
+        // ---------- ВЫДАТЬ (с бронированием) ----------
         function renderNewRental() {
             const clientOpts = clients.map(c => `<option value="${c.id}">${c.name} (${c.phone})</option>`).join('');
             const toolOpts = tools.filter(t => t.status === 'в наличии' || t.status === 'забронирован')
@@ -570,35 +550,28 @@
             <h1>Оформить аренду</h1>
             <form onsubmit="window._saveRental(event)">
                 <div class="mb-3">
-                    <label class="form-label">Клиент</label>
+                    <label>Клиент</label>
                     <select id="rClient" class="form-select" required>
                         <option value="">— Выберите —</option>
                         ${clientOpts}
                     </select>
-                    <small><a href="#" onclick="window._addClient(); return false;">➕ Добавить нового клиента</a></small>
+                    <small><a href="#" onclick="window._addClient(); return false;">➕ Добавить нового</a></small>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Инструмент</label>
+                    <label>Инструмент</label>
                     <select id="rTool" class="form-select" required>
                         <option value="">— Выберите —</option>
                         ${toolOpts}
                     </select>
                 </div>
-                <div class="mb-3"><label class="form-label">Дата выдачи</label><input id="rDate" type="date" class="form-control" value="${today}" required /></div>
-                <div class="mb-3"><label class="form-label">Количество дней</label><input id="rDays" type="number" class="form-control" value="1" min="1" required /></div>
-                <div class="mb-3">
-                    <label class="form-label">Комментарий</label>
-                    <textarea id="rComment" class="form-control" rows="2" placeholder="Особые условия, повреждения и т.п."></textarea>
+                <div class="mb-3"><label>Дата выдачи</label><input id="rDate" type="date" class="form-control" value="${today}" required /></div>
+                <div class="mb-3"><label>Количество дней</label><input id="rDays" type="number" class="form-control" value="1" min="1" required /></div>
+                <div class="mb-3"><label>Комментарий</label><textarea id="rComment" class="form-control" rows="2" placeholder="Особые условия"></textarea></div>
+                <div class="mb-3 form-check">
+                    <input class="form-check-input" type="checkbox" id="rReserve">
+                    <label class="form-check-label" for="rReserve">Забронировать (инструмент будет недоступен до даты выдачи)</label>
                 </div>
-                <div class="mb-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="rReserve">
-                        <label class="form-check-label" for="rReserve">
-                            Забронировать (инструмент будет недоступен для других до даты выдачи)
-                        </label>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-success">Выдать</button>
+                <button type="submit" class="btn btn-success">Оформить</button>
                 <button type="button" class="btn btn-secondary" onclick="navigate('dashboard')">Отмена</button>
             </form>
             `);
@@ -622,6 +595,7 @@
                 return;
             }
 
+            // Если инструмент забронирован другим, проверяем, что бронь не истекла
             if (tool.status === 'забронирован' && tool.reserved_until) {
                 if (new Date(tool.reserved_until) < new Date(issueDate)) {
                     alert('Бронь на этот инструмент истекла. Обновите страницу.');
@@ -632,6 +606,12 @@
             const planned = new Date(issueDate);
             planned.setDate(planned.getDate() + days);
 
+            // Определяем статус аренды
+            const rentalStatus = reserve ? 'забронирована' : 'активна';
+            const toolStatus = reserve ? 'забронирован' : 'в аренде';
+            const reservedUntil = reserve ? issueDate : null;
+
+            // Создаём аренду
             const rental = {
                 id: genId(),
                 rental_number: 'AR-' + Date.now().toString(36).toUpperCase(),
@@ -643,59 +623,46 @@
                 price_per_day: tool.price_per_day,
                 total_cost: tool.price_per_day * days,
                 deposit: tool.deposit,
-                status: 'активна',
+                status: rentalStatus,
                 return_condition: '',
                 comment: comment,
                 deposit_returned: false
             };
 
-            if (reserve && tool.status === 'в наличии') {
-                const reserveUntil = new Date(issueDate);
-                reserveUntil.setDate(reserveUntil.getDate() - 1);
-                const { error: reserveError } = await supabase.from('tools').update({
-                    status: 'забронирован',
-                    reserved_until: reserveUntil.toISOString().split('T')[0]
-                }).eq('id', toolId);
-                if (reserveError) { alert('Ошибка бронирования: ' + reserveError.message); return; }
-            }
+            // Обновляем инструмент
+            const toolUpdate = {
+                status: toolStatus,
+                reserved_until: reservedUntil
+            };
+
+            const { error: toolError } = await supabase.from('tools').update(toolUpdate).eq('id', toolId);
+            if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
 
             const { error: rentalError } = await supabase.from('rentals').insert(rental);
             if (rentalError) { alert('Ошибка создания аренды: ' + rentalError.message); return; }
-
-            if (!reserve && tool.status === 'в наличии') {
-                const { error: toolError } = await supabase.from('tools').update({ status: 'в аренде' }).eq('id', toolId);
-                if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
-            } else if (reserve) {
-                const { error: toolError } = await supabase.from('tools').update({ 
-                    status: 'в аренде',
-                    reserved_until: null
-                }).eq('id', toolId);
-                if (toolError) { alert('Ошибка обновления инструмента: ' + toolError.message); return; }
-            }
 
             await refreshAllData();
             navigate('dashboard');
         };
 
-        // ---------- АКТИВНЫЕ АРЕНДЫ ----------
+        // ---------- АКТИВНЫЕ АРЕНДЫ (с фильтром и поиском) ----------
         function renderActiveRentals() {
-            // Сохраняем текущие значения фильтров в глобальные переменные
-            activeSearch = document.getElementById('activeSearch')?.value || activeSearch;
-            activeStatus = document.getElementById('activeStatusFilter')?.value || activeStatus;
+            const searchInput = document.getElementById('activeSearch');
+            const statusSelect = document.getElementById('activeStatusFilter');
+            const search = searchInput ? searchInput.value : '';
+            const status = statusSelect ? statusSelect.value : '';
 
-            const search = activeSearch.toLowerCase();
-            const statusFilter = activeStatus;
             const active = rentals.filter(r => r.status === 'активна');
             let filtered = active;
             if (search) filtered = filtered.filter(r => {
-                const client = getClientById(r.client_id);
-                const tool = getToolById(r.tool_id);
-                return (client?.name?.toLowerCase().includes(search) || tool?.model?.toLowerCase().includes(search));
+                const c = getClientById(r.client_id);
+                const t = getToolById(r.tool_id);
+                return (c?.name?.toLowerCase().includes(search.toLowerCase()) || t?.model?.toLowerCase().includes(search.toLowerCase()));
             });
             const today = new Date(todayStr());
-            if (statusFilter === 'просрочена') {
+            if (status === 'просрочена') {
                 filtered = filtered.filter(r => new Date(r.planned_return) < today);
-            } else if (statusFilter === 'soon') {
+            } else if (status === 'soon') {
                 filtered = filtered.filter(r => {
                     const diff = daysBetween(todayStr(), r.planned_return);
                     return diff >= 0 && diff <= 2;
@@ -708,14 +675,14 @@
             <div class="filter-section">
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <input type="text" id="activeSearch" class="form-control" placeholder="Поиск по клиенту или инструменту" value="${activeSearch}" oninput="activeSearch=this.value; renderActiveRentals();">
+                        <input type="text" id="activeSearch" class="form-control" placeholder="Поиск по клиенту или инструменту" value="${search}" oninput="renderActiveRentals()">
                     </div>
                     <div class="col-md-3">
-                        <select id="activeStatusFilter" class="form-select" onchange="activeStatus=this.value; renderActiveRentals();">
-                            <option value="">Все статусы</option>
-                            <option value="активна" ${activeStatus === 'активна' ? 'selected' : ''}>Активна</option>
-                            <option value="просрочена" ${activeStatus === 'просрочена' ? 'selected' : ''}>Просрочена</option>
-                            <option value="soon" ${activeStatus === 'soon' ? 'selected' : ''}>Скоро возврат</option>
+                        <select id="activeStatusFilter" class="form-select" onchange="renderActiveRentals()">
+                            <option value="">Все</option>
+                            <option value="активна" ${status === 'активна' ? 'selected' : ''}>Активна</option>
+                            <option value="просрочена" ${status === 'просрочена' ? 'selected' : ''}>Просрочена</option>
+                            <option value="soon" ${status === 'soon' ? 'selected' : ''}>Скоро возврат</option>
                         </select>
                     </div>
                 </div>
@@ -727,15 +694,15 @@
                 <tbody>
                 ${filtered.length === 0 ? '<tr><td colspan="10" class="text-center text-muted">Нет активных аренд</td></tr>' :
                     filtered.map(r => {
-                        const client = getClientById(r.client_id);
-                        const tool = getToolById(r.tool_id);
+                        const c = getClientById(r.client_id);
+                        const t = getToolById(r.tool_id);
                         const days = daysBetween(r.issue_date, r.planned_return);
                         const isOverdue = new Date(r.planned_return) < today;
                         const statusDisplay = isOverdue ? 'просрочена' : r.status;
                         return `<tr>
                             <td>${r.rental_number || '—'}</td>
-                            <td>${client ? client.name : 'Удалён'}</td>
-                            <td>${tool ? tool.model : 'Удалён'}</td>
+                            <td>${c ? c.name : 'Удалён'}</td>
+                            <td>${t ? t.model : 'Удалён'}</td>
                             <td>${r.price_per_day || 0} ₽</td>
                             <td>${formatDate(r.issue_date)}</td>
                             <td>${formatDate(r.planned_return)}</td>
@@ -751,13 +718,118 @@
             render(html);
         }
 
+        // ---------- БРОНИ (новая вкладка) ----------
+        function renderBookings() {
+            const searchInput = document.getElementById('bookingSearch');
+            const search = searchInput ? searchInput.value : '';
+
+            const bookings = rentals.filter(r => r.status === 'забронирована');
+            let filtered = bookings;
+            if (search) filtered = filtered.filter(r => {
+                const c = getClientById(r.client_id);
+                const t = getToolById(r.tool_id);
+                return (c?.name?.toLowerCase().includes(search.toLowerCase()) || t?.model?.toLowerCase().includes(search.toLowerCase()));
+            });
+
+            let html = `
+            <h1>📅 Брони</h1>
+            <p class="text-muted">Всего броней: ${bookings.length}</p>
+            <div class="filter-section">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" id="bookingSearch" class="form-control" placeholder="Поиск по клиенту или инструменту" value="${search}" oninput="renderBookings()">
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive"><table class="table table-striped table-hover">
+                <thead><tr>
+                    <th>№</th><th>Клиент</th><th>Инструмент</th><th>Выдача (с)</th><th>План возврат</th><th>Дней</th><th>Сумма</th><th>Действия</th>
+                </tr></thead>
+                <tbody>
+                ${filtered.length === 0 ? '<tr><td colspan="8" class="text-center text-muted">Нет броней</td></tr>' :
+                    filtered.map(r => {
+                        const c = getClientById(r.client_id);
+                        const t = getToolById(r.tool_id);
+                        const days = daysBetween(r.issue_date, r.planned_return);
+                        return `<tr>
+                            <td>${r.rental_number || '—'}</td>
+                            <td>${c ? c.name : 'Удалён'}</td>
+                            <td>${t ? t.model : 'Удалён'}</td>
+                            <td>${formatDate(r.issue_date)}</td>
+                            <td>${formatDate(r.planned_return)}</td>
+                            <td>${days}</td>
+                            <td>${r.total_cost || 0} ₽</td>
+                            <td>
+                                <button class="btn btn-sm btn-success" onclick="window._bookingToRental('${r.id}')">➡️ В аренду</button>
+                                <button class="btn btn-sm btn-danger" onclick="window._cancelBooking('${r.id}')">✕ Отменить</button>
+                            </td>
+                        </tr>`;
+                    }).join('')
+                }
+                </tbody></table></div>
+            <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
+            render(html);
+        }
+
+        // Перевести бронь в аренду
+        window._bookingToRental = async function(rentalId) {
+            if (!confirm('Перевести бронь в активную аренду?')) return;
+            const rental = rentals.find(r => r.id === rentalId);
+            if (!rental) return;
+            if (rental.status !== 'забронирована') { alert('Это не бронь'); return; }
+
+            // Обновляем аренду
+            const { error: rentalError } = await supabase.from('rentals').update({
+                status: 'активна'
+            }).eq('id', rentalId);
+            if (rentalError) { alert('Ошибка: ' + rentalError.message); return; }
+
+            // Обновляем инструмент
+            const tool = getToolById(rental.tool_id);
+            if (tool) {
+                const { error: toolError } = await supabase.from('tools').update({
+                    status: 'в аренде',
+                    reserved_until: null
+                }).eq('id', tool.id);
+                if (toolError) { alert('Ошибка: ' + toolError.message); return; }
+            }
+
+            await refreshAllData();
+            navigate('bookings');
+        };
+
+        // Отменить бронь
+        window._cancelBooking = async function(rentalId) {
+            if (!confirm('Отменить бронь?')) return;
+            const rental = rentals.find(r => r.id === rentalId);
+            if (!rental) return;
+            if (rental.status !== 'забронирована') { alert('Это не бронь'); return; }
+
+            // Удаляем аренду (или меняем статус на отменённую, но для простоты удаляем)
+            const { error: rentalError } = await supabase.from('rentals').delete().eq('id', rentalId);
+            if (rentalError) { alert('Ошибка: ' + rentalError.message); return; }
+
+            // Возвращаем инструмент в наличие
+            const tool = getToolById(rental.tool_id);
+            if (tool) {
+                const { error: toolError } = await supabase.from('tools').update({
+                    status: 'в наличии',
+                    reserved_until: null
+                }).eq('id', tool.id);
+                if (toolError) { alert('Ошибка: ' + toolError.message); return; }
+            }
+
+            await refreshAllData();
+            navigate('bookings');
+        };
+
         // ---------- ВОЗВРАТ ----------
         function renderReturnRental() {
             const active = rentals.filter(r => r.status === 'активна');
             let opts = active.map(r => {
-                const client = getClientById(r.client_id);
-                const tool = getToolById(r.tool_id);
-                const label = `${r.rental_number} — ${tool ? tool.model : 'Удалён'} (${client ? client.name : 'Удалён'})`;
+                const c = getClientById(r.client_id);
+                const t = getToolById(r.tool_id);
+                const label = `${r.rental_number} — ${t ? t.model : 'Удалён'} (${c ? c.name : 'Удалён'})`;
                 return `<option value="${r.id}">${label}</option>`;
             }).join('');
             const today = todayStr();
@@ -767,15 +839,15 @@
             ${active.length === 0 ? '<div class="alert alert-info">Нет активных аренд.</div>' : `
             <form onsubmit="return false;">
                 <div class="mb-3">
-                    <label class="form-label">Активная аренда</label>
+                    <label>Активная аренда</label>
                     <select id="retRental" class="form-select" required>
                         <option value="">— Выберите —</option>
                         ${opts}
                     </select>
                 </div>
-                <div class="mb-3"><label class="form-label">Фактическая дата возврата</label><input id="retDate" type="date" class="form-control" value="${today}" required /></div>
+                <div class="mb-3"><label>Фактическая дата возврата</label><input id="retDate" type="date" class="form-control" value="${today}" required /></div>
                 <div class="mb-3">
-                    <label class="form-label">Состояние инструмента</label>
+                    <label>Состояние инструмента</label>
                     <select id="retCondition" class="form-select">
                         <option value="Отличное">Отличное</option>
                         <option value="Хорошее" selected>Хорошее</option>
@@ -783,11 +855,9 @@
                         <option value="Неисправен">Неисправен</option>
                     </select>
                 </div>
-                <div class="mb-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="retDepositReturned">
-                        <label class="form-check-label" for="retDepositReturned">Залог возвращён</label>
-                    </div>
+                <div class="mb-3 form-check">
+                    <input class="form-check-input" type="checkbox" id="retDepositReturned">
+                    <label class="form-check-label" for="retDepositReturned">Залог возвращён</label>
                 </div>
                 <div class="mb-3">
                     <button type="button" class="btn btn-success" onclick="window._returnRental(false)">Принять возврат</button>
@@ -871,20 +941,22 @@
             navigate('repair');
         };
 
-        // ---------- ИСТОРИЯ ----------
+        // ---------- ИСТОРИЯ (с поиском и фильтром) ----------
         function renderHistory() {
-            historySearch = document.getElementById('historySearch')?.value || historySearch;
-            historyFilter = document.getElementById('historyFilter')?.value || historyFilter;
+            const searchInput = document.getElementById('historySearch');
+            const filterSelect = document.getElementById('historyFilter');
+            const search = searchInput ? searchInput.value : '';
+            const filter = filterSelect ? filterSelect.value : 'all';
 
-            const search = historySearch.toLowerCase();
-            const filter = historyFilter;
             let filtered = rentals;
             if (filter === 'active') filtered = rentals.filter(r => r.status === 'активна');
             else if (filter === 'closed') filtered = rentals.filter(r => r.status === 'закрыта');
+            else if (filter === 'booked') filtered = rentals.filter(r => r.status === 'забронирована');
+
             if (search) filtered = filtered.filter(r => {
-                const client = getClientById(r.client_id);
-                const tool = getToolById(r.tool_id);
-                return (client?.name?.toLowerCase().includes(search) || tool?.model?.toLowerCase().includes(search) || r.rental_number?.toLowerCase().includes(search));
+                const c = getClientById(r.client_id);
+                const t = getToolById(r.tool_id);
+                return (c?.name?.toLowerCase().includes(search.toLowerCase()) || t?.model?.toLowerCase().includes(search.toLowerCase()) || r.rental_number?.toLowerCase().includes(search.toLowerCase()));
             });
             const sorted = [...filtered].sort((a, b) => (b.id || '').localeCompare(a.id || ''));
 
@@ -896,13 +968,14 @@
             <div class="filter-section">
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <input type="text" id="historySearch" class="form-control" placeholder="Поиск по клиенту или инструменту" value="${historySearch}" oninput="historySearch=this.value; renderHistory();">
+                        <input type="text" id="historySearch" class="form-control" placeholder="Поиск" value="${search}" oninput="renderHistory()">
                     </div>
                     <div class="col-md-3">
-                        <select id="historyFilter" class="form-select" onchange="historyFilter=this.value; renderHistory();">
-                            <option value="all" ${historyFilter === 'all' ? 'selected' : ''}>Все</option>
-                            <option value="active" ${historyFilter === 'active' ? 'selected' : ''}>Активные</option>
-                            <option value="closed" ${historyFilter === 'closed' ? 'selected' : ''}>Закрытые</option>
+                        <select id="historyFilter" class="form-select" onchange="renderHistory()">
+                            <option value="all" ${filter === 'all' ? 'selected' : ''}>Все</option>
+                            <option value="active" ${filter === 'active' ? 'selected' : ''}>Активные</option>
+                            <option value="closed" ${filter === 'closed' ? 'selected' : ''}>Закрытые</option>
+                            <option value="booked" ${filter === 'booked' ? 'selected' : ''}>Брони</option>
                         </select>
                     </div>
                 </div>
@@ -914,13 +987,13 @@
                 <tbody>
                 ${sorted.length === 0 ? '<tr><td colspan="13" class="text-center text-muted">Нет записей</td></tr>' :
                     sorted.map(r => {
-                        const client = getClientById(r.client_id);
-                        const tool = getToolById(r.tool_id);
-                        const canDelete = r.status !== 'активна';
+                        const c = getClientById(r.client_id);
+                        const t = getToolById(r.tool_id);
+                        const canDelete = r.status !== 'активна' && r.status !== 'забронирована';
                         return `<tr>
                             <td>${r.rental_number || '—'}</td>
-                            <td>${client ? client.name : 'Удалён'}</td>
-                            <td>${tool ? tool.model : 'Удалён'}</td>
+                            <td>${c ? c.name : 'Удалён'}</td>
+                            <td>${t ? t.model : 'Удалён'}</td>
                             <td>${formatDate(r.issue_date)}</td>
                             <td>${formatDate(r.planned_return)}</td>
                             <td>${formatDate(r.actual_return)}</td>
@@ -939,12 +1012,12 @@
         }
 
         window._exportCSV = function() {
-            if (rentals.length === 0) { alert('Нет данных для экспорта'); return; }
+            if (rentals.length === 0) { alert('Нет данных'); return; }
             let csv = '№,Клиент,Инструмент,Выдача,План возврат,Факт возврат,Цена/сутки,Сумма,Залог,Залог возвращён,Состояние,Комментарий,Статус\n';
             rentals.forEach(r => {
-                const client = getClientById(r.client_id);
-                const tool = getToolById(r.tool_id);
-                csv += `"${r.rental_number || ''}","${client ? client.name : ''}","${tool ? tool.model : ''}",`;
+                const c = getClientById(r.client_id);
+                const t = getToolById(r.tool_id);
+                csv += `"${r.rental_number || ''}","${c ? c.name : ''}","${t ? t.model : ''}",`;
                 csv += `"${formatDate(r.issue_date)}","${formatDate(r.planned_return)}","${formatDate(r.actual_return)}",`;
                 csv += `"${r.price_per_day || 0}","${r.total_cost || 0}","${r.deposit || 0}","${r.deposit_returned ? 'Да' : 'Нет'}",`;
                 csv += `"${r.return_condition || ''}","${r.comment || ''}","${r.status || ''}"\n`;
@@ -960,11 +1033,11 @@
         };
 
         window._deleteRental = async function(rentalId) {
-            if (!confirm('Удалить эту аренду? Это действие необратимо.')) return;
+            if (!confirm('Удалить эту аренду?')) return;
             const rental = rentals.find(r => r.id === rentalId);
             if (!rental) return;
-            if (rental.status === 'активна') {
-                alert('Нельзя удалить активную аренду. Сначала верните инструмент.');
+            if (rental.status === 'активна' || rental.status === 'забронирована') {
+                alert('Нельзя удалить активную аренду или бронь');
                 return;
             }
             const { error } = await supabase.from('rentals').delete().eq('id', rentalId);
@@ -979,10 +1052,7 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                alert('Ошибка входа: ' + error.message);
-                return;
-            }
+            if (error) { alert('Ошибка входа: ' + error.message); return; }
             if (data.user) {
                 document.getElementById('loginPage').classList.add('hidden');
                 document.getElementById('registerPage').classList.add('hidden');
@@ -998,10 +1068,7 @@
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
             const { data, error } = await supabase.auth.signUp({ email, password });
-            if (error) {
-                alert('Ошибка регистрации: ' + error.message);
-                return;
-            }
+            if (error) { alert('Ошибка регистрации: ' + error.message); return; }
             alert('Регистрация успешна! Теперь войдите.');
             showLogin();
         };
@@ -1025,7 +1092,7 @@
             document.getElementById('loginPage').classList.remove('hidden');
         };
 
-        // ---------- ПРОВЕРКА СЕССИИ ----------
+        // ---------- СЕССИЯ ----------
         async function checkSession() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -1043,7 +1110,6 @@
             }
         }
 
-        // ----- СТАРТ -----
         checkSession();
     })();
 </script>
