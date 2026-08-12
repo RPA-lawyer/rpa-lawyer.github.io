@@ -169,11 +169,16 @@
         body.dark-mode .table {
             color: #e0e0e0;
         }
-        body.dark-mode .table th {
-            color: #ddd;
+        body.dark-mode .table th,
+        body.dark-mode .table td {
+            color: #e0e0e0;
+            border-color: #444;
         }
         body.dark-mode .table-striped>tbody>tr:nth-of-type(odd)>* {
             background-color: rgba(255,255,255,0.03);
+        }
+        body.dark-mode .table-hover>tbody>tr:hover>* {
+            background-color: rgba(255,255,255,0.05);
         }
         body.dark-mode .btn-outline-secondary {
             color: #ddd;
@@ -182,6 +187,19 @@
         body.dark-mode .btn-outline-secondary:hover {
             color: #fff;
             background-color: #555;
+        }
+        body.dark-mode .text-muted {
+            color: #aaa !important;
+        }
+        body.dark-mode .alert-success {
+            background-color: #1e3a2a;
+            border-color: #2d6a4f;
+            color: #a7f0ba;
+        }
+        body.dark-mode .alert-info {
+            background-color: #1e2f4a;
+            border-color: #2a4a6a;
+            color: #a7c8f0;
         }
     </style>
 </head>
@@ -272,7 +290,6 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Вспомогательные функции
         function genId() { return Date.now().toString(36) + Math.random().toString(36).substring(2, 8); }
         function todayStr() { return new Date().toISOString().split('T')[0]; }
         function formatDate(dateStr) { if (!dateStr) return '—'; return new Date(dateStr).toLocaleDateString('ru-RU'); }
@@ -380,6 +397,10 @@
                 navigate('dashboard');
             }
         }
+
+        // Делаем функции глобальными для вызова из data-action и меню
+        window.navigate = navigate;
+        window.goBack = goBack;
 
         // ============================================================
         // ОСНОВНОЙ РЕНДЕР
@@ -502,6 +523,14 @@
                     renderCurrentPage();
                 }
             }
+        });
+
+        // Обработчик клика по пунктам меню (использует глобальную navigate)
+        document.querySelector('#navList').addEventListener('click', function(e) {
+            const link = e.target.closest('.nav-link');
+            if (!link) return;
+            const page = link.dataset.page;
+            if (page) navigate(page);
         });
 
         // ============================================================
@@ -844,12 +873,10 @@
         window.editClient = function(id) { window._editClient(id); };
         window.deleteClient = function(id) { window._deleteClient(id); };
         window.showClientHistory = function(clientId) {
-            // используем функцию _showClientHistory, которую переопределим
             window._showClientHistory(clientId);
         };
 
         // Переопределяем _showClientHistory для использования новой навигации
-        const originalShowClientHistory = window._showClientHistory;
         window._showClientHistory = function(clientId) {
             const client = getClientById(clientId);
             if (!client) return;
@@ -934,7 +961,6 @@
             render(container, html);
         }
 
-        // Функции CRUD – они уже есть, но переопределим для совместимости
         window._addClient = function() {
             const container = document.getElementById('appContent');
             render(container, `
@@ -1012,7 +1038,6 @@
             navigate('clients');
         };
 
-        // Остальные CRUD (инструменты, аренды) – уже существуют, просто переназначим их для совместимости
         window._addTool = function() {
             const container = document.getElementById('appContent');
             render(container, `
@@ -1729,11 +1754,11 @@
             document.body.classList.toggle('dark-mode', state.darkMode);
             localStorage.setItem('darkMode', state.darkMode);
         }
+        window.toggleDarkMode = toggleDarkMode;
         if (localStorage.getItem('darkMode') === 'true') {
             state.darkMode = true;
             document.body.classList.add('dark-mode');
         }
-        window.toggleDarkMode = toggleDarkMode;
 
         // ============================================================
         // ИНИЦИАЛИЗАЦИЯ
