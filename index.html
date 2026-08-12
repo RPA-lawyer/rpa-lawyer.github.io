@@ -64,6 +64,15 @@
             border-bottom-color: var(--brick-light);
             color: #f1c40f !important;
         }
+        /* Увеличиваем зону нажатия на кнопку гамбургера */
+        .navbar-toggler {
+            padding: 0.5rem 0.75rem;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 6px;
+        }
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.2rem rgba(241, 196, 15, 0.5);
+        }
 
         /* ---------- КАРТОЧКИ ---------- */
         .card, .card-dashboard, .filter-section, .chart-container {
@@ -266,10 +275,9 @@
             flex-direction: column;
             position: relative;
             min-height: 200px;
-            padding-left: 50px; /* для оси Y */
-            padding-bottom: 30px; /* для оси X */
+            padding-left: 50px;
+            padding-bottom: 30px;
         }
-        /* Ось Y (кран) */
         .chart-y-axis {
             position: absolute;
             left: 40px;
@@ -292,7 +300,6 @@
             border-radius: 50%;
             box-shadow: 0 0 6px rgba(210, 105, 30, 0.6);
         }
-        /* Ось X (бетонное основание) */
         .chart-x-axis {
             position: absolute;
             left: 40px;
@@ -314,8 +321,6 @@
             background: #D2691E;
             border-radius: 50%;
         }
-
-        /* Сетка значений по Y */
         .chart-y-labels {
             position: absolute;
             left: 0;
@@ -338,15 +343,12 @@
         body.dark-mode .chart-y-labels span {
             color: #bdc3c7;
         }
-
-        /* Контейнер для точек графика */
         .chart-points {
             position: relative;
             flex: 1;
             min-height: 180px;
             margin-left: 10px;
         }
-        /* Каждая точка */
         .chart-point {
             position: absolute;
             bottom: 0;
@@ -368,7 +370,6 @@
             box-shadow: 0 0 12px rgba(241, 196, 15, 0.7);
             z-index: 5;
         }
-        /* Вертикальная линия от точки до оси X (имитация троса крана) */
         .chart-point-line {
             position: absolute;
             bottom: 0;
@@ -378,7 +379,6 @@
             transform: translateX(-50%);
             z-index: 0;
         }
-        /* Тултип при наведении */
         .chart-tooltip {
             position: fixed;
             background: #1e2a36;
@@ -399,7 +399,6 @@
             color: #fff;
         }
 
-        /* Тёмная тема для графика */
         body.dark-mode .chart-y-axis,
         body.dark-mode .chart-x-axis {
             background: #e67e22;
@@ -555,6 +554,10 @@
             .chart-y-axis { left: 20px; }
             .chart-y-labels { width: 20px; font-size: 8px; }
             .chart-y-labels span { padding-right: 4px; }
+            /* Увеличиваем отступы для меню на телефонах */
+            .navbar-nav .nav-link {
+                padding: 0.5rem 0;
+            }
         }
 
         .badge.bg-success { background: #27ae60 !important; }
@@ -574,7 +577,7 @@
         <span class="navbar-brand" style="cursor:default;">
             <i class="bi bi-tools me-2"></i>СК <span style="color:#f1c40f;">Квадрант</span>
         </span>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navMenu">
@@ -649,6 +652,8 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- Подключаем Bootstrap JS (обязательно для работы гамбургера) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     // ================================================================
@@ -791,7 +796,6 @@
                 chartData.push({ date: dateStr, revenue: dayRevenue });
             }
             const maxRevenue = Math.max(...chartData.map(d => d.revenue), 1);
-            // Если maxRevenue == 0, чтобы не делить на ноль
             const maxVal = maxRevenue > 0 ? maxRevenue : 1;
 
             const recent = [...rentals].filter(r => r.status !== 'забронирована').sort((a, b) => (b.id || '').localeCompare(a.id || '')).slice(0, 5);
@@ -813,11 +817,8 @@
             let chartHtml = `
             <div class="chart-wrapper">
                 <div class="chart-grid" id="chartGrid">
-                    <!-- Ось Y (кран) -->
                     <div class="chart-y-axis"></div>
-                    <!-- Ось X (бетон) -->
                     <div class="chart-x-axis"></div>
-                    <!-- Метки по Y -->
                     <div class="chart-y-labels">
                         <span>${maxVal} ₽</span>
                         <span>${Math.round(maxVal * 0.75)}</span>
@@ -825,16 +826,13 @@
                         <span>${Math.round(maxVal * 0.25)}</span>
                         <span>0</span>
                     </div>
-                    <!-- Точки графика -->
                     <div class="chart-points" id="chartPoints">
             `;
 
             chartData.forEach((d, index) => {
                 const heightPercent = (d.revenue / maxVal) * 100;
                 const leftPercent = (index / (chartData.length - 1)) * 100;
-                // Вертикальная линия (трос)
                 chartHtml += `<div class="chart-point-line" style="left:${leftPercent}%; height:${heightPercent}%; bottom:0;"></div>`;
-                // Точка
                 chartHtml += `<div class="chart-point" style="left:${leftPercent}%; bottom:${heightPercent}%;" data-revenue="${d.revenue}" data-date="${formatDate(d.date)}"></div>`;
             });
 
@@ -845,7 +843,6 @@
             <div class="chart-tooltip" id="chartTooltip"></div>
             `;
 
-            // Далее обычный дашборд
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1>Дашборд</h1>
@@ -934,7 +931,6 @@
                 </div>
             </div>
 
-            <!-- НОВЫЙ ГРАФИК -->
             <div class="chart-container mt-4">
                 <h5>Выручка за последние 7 дней (наведите на точку)</h5>
                 ${chartHtml}
