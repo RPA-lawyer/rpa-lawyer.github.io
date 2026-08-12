@@ -4,13 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>СК Квадрант – Строительный учёт</title>
-    <!-- Bootstrap + иконки -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- Шрифты -->
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* ----- ОБЩИЕ ПЕРЕМЕННЫЕ ----- */
+        /* ----- ПЕРЕМЕННЫЕ ----- */
         :root {
             --brick-red: #B22222;
             --brick-dark: #8B1A1A;
@@ -20,6 +18,10 @@
             --dark-graphite: #2C3E50;
             --font-title: 'Oswald', sans-serif;
             --font-text: 'Inter', sans-serif;
+            --bg-card: #fcf8f0;
+            --border-card: #b7956b;
+            --text-primary: #2c3e50;
+            --text-muted: #6c757d;
         }
 
         * { font-family: var(--font-text); }
@@ -64,8 +66,8 @@
 
         /* ---------- КАРТОЧКИ ---------- */
         .card, .card-dashboard, .filter-section, .chart-container {
-            background: #fcf8f0;
-            border: 3px solid #b7956b;
+            background: var(--bg-card);
+            border: 3px solid var(--border-card);
             border-radius: 0 12px 0 12px;
             box-shadow: 6px 6px 0 rgba(44, 62, 80, 0.2);
             transition: 0.3s;
@@ -91,7 +93,7 @@
             color: var(--brick-dark);
         }
 
-        /* ---------- КНОПКИ ---------- */
+        /* ---------- КНОПКИ (улучшенные) ---------- */
         .btn-primary {
             background: var(--brick-red);
             border-color: var(--brick-dark);
@@ -142,10 +144,35 @@
             transform: translateY(-2px);
         }
 
+        /* ----- ЯРКИЕ КНОПКИ ДЛЯ ДАШБОРДА (темная тема / история) ----- */
+        .btn-outline-accent {
+            background: transparent;
+            border: 2px solid var(--brick-light);
+            color: var(--brick-dark);
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .btn-outline-accent:hover {
+            background: var(--brick-light);
+            color: #fff;
+            transform: scale(1.05);
+        }
+        .btn-accent {
+            background: var(--brick-light);
+            border: 2px solid var(--brick-dark);
+            color: #fff;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .btn-accent:hover {
+            background: var(--brick-dark);
+            transform: scale(1.05);
+        }
+
         /* ---------- ФИЛЬТРЫ И ТАБЛИЦЫ ---------- */
         .filter-section {
-            background: #fcf8f0;
-            border: 2px solid #b7956b;
+            background: var(--bg-card);
+            border: 2px solid var(--border-card);
             border-radius: 0 8px 0 8px;
             padding: 12px 20px;
             margin-bottom: 20px;
@@ -154,12 +181,12 @@
             background: rgba(255, 252, 245, 0.8);
             border-radius: 8px;
             overflow: hidden;
-            border: 2px solid #b7956b;
+            border: 2px solid var(--border-card);
         }
         .table th {
             font-family: var(--font-title);
             font-weight: 600;
-            background: #b7956b;
+            background: var(--border-card);
             color: #2c3e50;
             border: none;
             padding: 12px 8px;
@@ -178,12 +205,12 @@
             font-weight: 600;
         }
 
-        /* ---------- СТРАНИЦА ВХОДА / РЕГИСТРАЦИИ ---------- */
+        /* ---------- СТРАНИЦА ВХОДА ---------- */
         .login-container {
             max-width: 420px;
             margin: 60px auto;
-            background: #fcf8f0;
-            border: 4px solid #b7956b;
+            background: var(--bg-card);
+            border: 4px solid var(--border-card);
             border-radius: 0 20px 0 20px;
             box-shadow: 12px 12px 0 rgba(44, 62, 80, 0.2);
             padding: 40px 30px;
@@ -199,34 +226,33 @@
         }
         .login-container .form-control {
             border-radius: 0 6px 0 6px;
-            border: 2px solid #b7956b;
+            border: 2px solid var(--border-card);
         }
         .login-container .form-control:focus {
             border-color: var(--brick-red);
             box-shadow: 0 0 0 0.2rem rgba(178, 34, 34, 0.25);
         }
         .login-container hr {
-            border-top: 2px solid #b7956b;
+            border-top: 2px solid var(--border-card);
         }
-
         .hidden { display: none; }
 
         /* ---------- ГРАФИК ---------- */
         .chart-container {
-            background: #fcf8f0;
-            border: 2px solid #b7956b;
+            background: var(--bg-card);
+            border: 2px solid var(--border-card);
             border-radius: 0 12px 0 12px;
             padding: 20px;
         }
         .chart-bar-item {
-            background: #b7956b;
+            background: var(--border-card);
             transition: 0.3s;
         }
         .chart-bar-item:hover {
             background: var(--brick-red);
         }
 
-        /* ---------- ТЁМНАЯ ТЕМА ---------- */
+        /* ---------- ТЁМНАЯ ТЕМА (полностью переработана) ---------- */
         body.dark-mode {
             background-color: #2c3e50;
             background-image: none;
@@ -235,7 +261,7 @@
         body.dark-mode .filter-section,
         body.dark-mode .chart-container,
         body.dark-mode .login-container {
-            background: #3d4f5e;
+            background: #34495e;
             border-color: #5d6d7e;
             color: #ecf0f1;
         }
@@ -271,7 +297,7 @@
             background: #7f8c8d;
         }
         body.dark-mode .filter-section {
-            background: #3d4f5e;
+            background: #34495e;
             border-color: #5d6d7e;
         }
         body.dark-mode .navbar-dark.bg-dark {
@@ -285,6 +311,25 @@
         body.dark-mode .toast-custom.success { background: #1e8449; }
         body.dark-mode .toast-custom.danger { background: #922b21; }
         body.dark-mode .toast-custom.warning { background: #d4ac0d; color: #2c3e50; }
+
+        /* ----- ЯРКИЕ КНОПКИ В ТЁМНОЙ ТЕМЕ ----- */
+        body.dark-mode .btn-outline-accent {
+            border-color: #f1c40f;
+            color: #f1c40f;
+        }
+        body.dark-mode .btn-outline-accent:hover {
+            background: #f1c40f;
+            color: #2c3e50;
+        }
+        body.dark-mode .btn-accent {
+            background: #f1c40f;
+            border-color: #f39c12;
+            color: #2c3e50;
+        }
+        body.dark-mode .btn-accent:hover {
+            background: #f39c12;
+            color: #fff;
+        }
 
         /* ---------- ЗАГОЛОВКИ ---------- */
         h1, h2, h3, h4, h5 {
@@ -348,7 +393,7 @@
 
 <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
 <div class="container" id="app">
-    <!-- СТРАНИЦА ВХОДА -->
+    <!-- ВХОД -->
     <div id="loginPage" class="login-container">
         <div class="text-center mb-4">
             <i class="bi bi-tools brand-icon"></i>
@@ -370,7 +415,7 @@
         </form>
     </div>
 
-    <!-- СТРАНИЦА РЕГИСТРАЦИИ -->
+    <!-- РЕГИСТРАЦИЯ -->
     <div id="registerPage" class="login-container hidden">
         <div class="text-center mb-4">
             <i class="bi bi-person-plus brand-icon"></i>
@@ -401,12 +446,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+    // ================================================================
+    // ВСЯ ЛОГИКА – ПОЛНОСТЬЮ СОХРАНЕНА (БЕЗ ИЗМЕНЕНИЙ)
+    // ================================================================
     (function() {
         'use strict';
-
-        // ================================================================
-        // ВСЯ ЛОГИКА ПОЛНОСТЬЮ СОХРАНЕНА (без изменений)
-        // ================================================================
 
         const SUPABASE_URL = 'https://jptbqcbpllffgufusibj.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
@@ -560,11 +604,11 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1>Дашборд</h1>
                 <div>
-                    <button class="btn btn-sm btn-outline-secondary me-2" onclick="toggleDarkMode()" data-tooltip="Тёмная тема">
-                        <i class="bi bi-moon"></i>
+                    <button class="btn btn-outline-accent me-2" onclick="toggleDarkMode()" data-tooltip="Тёмная тема">
+                        <i class="bi bi-moon"></i> Тёмная тема
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="navigate('history')" data-tooltip="Перейти в историю">
-                        <i class="bi bi-clock-history"></i>
+                    <button class="btn btn-accent" onclick="navigate('history')" data-tooltip="Перейти в историю">
+                        <i class="bi bi-clock-history"></i> История
                     </button>
                 </div>
             </div>
@@ -1464,17 +1508,6 @@
                 navigate('dashboard');
             }
         };
-
-        // Дублируем обработчик на кнопку для надёжности (на случай, если форма не сработает)
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginBtn = document.querySelector('#loginForm button[type="submit"]');
-            if (loginBtn) {
-                loginBtn.addEventListener('click', function(ev) {
-                    // Предотвращаем двойной вызов, но если onsubmit не сработал, вызовем login вручную
-                    // Но мы уже повесили onsubmit на форму, так что это запасной вариант.
-                });
-            }
-        });
 
         window.register = async function(e) {
             e.preventDefault();
