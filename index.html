@@ -248,22 +248,182 @@
         }
         .hidden { display: none; }
 
-        /* ---------- ГРАФИК ---------- */
+        /* ---------- ГРАФИК (строительный) ---------- */
         .chart-container {
             background: var(--bg-card);
             border: 2px solid var(--border-card);
             border-radius: 0 12px 0 12px;
             padding: 20px;
+            position: relative;
         }
-        .chart-bar-item {
-            background: var(--border-card);
-            transition: 0.3s;
+        .chart-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding: 10px 0;
         }
-        .chart-bar-item:hover {
-            background: var(--brick-red);
+        .chart-grid {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 200px;
+            padding-left: 50px; /* для оси Y */
+            padding-bottom: 30px; /* для оси X */
+        }
+        /* Ось Y (кран) */
+        .chart-y-axis {
+            position: absolute;
+            left: 40px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #8B7D6B;
+            border-radius: 2px;
+            box-shadow: 0 0 4px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .chart-y-axis::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -6px;
+            width: 16px;
+            height: 16px;
+            background: #D2691E;
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(210, 105, 30, 0.6);
+        }
+        /* Ось X (бетонное основание) */
+        .chart-x-axis {
+            position: absolute;
+            left: 40px;
+            right: 10px;
+            bottom: 0;
+            height: 8px;
+            background: #8B7D6B;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .chart-x-axis::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: -4px;
+            width: 16px;
+            height: 16px;
+            background: #D2691E;
+            border-radius: 50%;
         }
 
-        /* ---------- ТЁМНАЯ ТЕМА (исправлена для таблиц) ---------- */
+        /* Сетка значений по Y */
+        .chart-y-labels {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #5d6d7e;
+            font-weight: 500;
+            padding-bottom: 30px;
+            z-index: 2;
+        }
+        .chart-y-labels span {
+            text-align: right;
+            padding-right: 8px;
+        }
+        body.dark-mode .chart-y-labels span {
+            color: #bdc3c7;
+        }
+
+        /* Контейнер для точек графика */
+        .chart-points {
+            position: relative;
+            flex: 1;
+            min-height: 180px;
+            margin-left: 10px;
+        }
+        /* Каждая точка */
+        .chart-point {
+            position: absolute;
+            bottom: 0;
+            width: 8px;
+            height: 8px;
+            background: var(--brick-red);
+            border-radius: 50%;
+            border: 2px solid #fcf8f0;
+            box-shadow: 0 0 6px rgba(178, 34, 34, 0.5);
+            transform: translateX(-50%);
+            transition: 0.2s;
+            z-index: 3;
+            cursor: pointer;
+        }
+        .chart-point:hover {
+            transform: translateX(-50%) scale(1.6);
+            background: #f1c40f;
+            border-color: #f1c40f;
+            box-shadow: 0 0 12px rgba(241, 196, 15, 0.7);
+            z-index: 5;
+        }
+        /* Вертикальная линия от точки до оси X (имитация троса крана) */
+        .chart-point-line {
+            position: absolute;
+            bottom: 0;
+            width: 2px;
+            background: #8B7D6B;
+            opacity: 0.3;
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+        /* Тултип при наведении */
+        .chart-tooltip {
+            position: fixed;
+            background: #1e2a36;
+            color: #ecf0f1;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            pointer-events: none;
+            z-index: 999;
+            display: none;
+            border-left: 4px solid var(--brick-light);
+            white-space: nowrap;
+        }
+        body.dark-mode .chart-tooltip {
+            background: #2c3e50;
+            color: #fff;
+        }
+
+        /* Тёмная тема для графика */
+        body.dark-mode .chart-y-axis,
+        body.dark-mode .chart-x-axis {
+            background: #e67e22;
+        }
+        body.dark-mode .chart-y-axis::after,
+        body.dark-mode .chart-x-axis::after {
+            background: #f1c40f;
+        }
+        body.dark-mode .chart-point {
+            background: #f1c40f;
+            border-color: #2c3e50;
+            box-shadow: 0 0 6px rgba(241, 196, 15, 0.5);
+        }
+        body.dark-mode .chart-point:hover {
+            background: #fff;
+            border-color: #fff;
+            box-shadow: 0 0 12px rgba(255,255,255,0.7);
+        }
+        body.dark-mode .chart-point-line {
+            background: #e67e22;
+            opacity: 0.2;
+        }
+
+        /* ---------- ТЁМНАЯ ТЕМА (общая) ---------- */
         body.dark-mode {
             background-color: #1e2a36;
             background-image: none;
@@ -288,8 +448,6 @@
         body.dark-mode .card-dashboard .card-body .text-muted {
             color: #bdc3c7 !important;
         }
-
-        /* ---- ТАБЛИЦЫ В ТЁМНОЙ ТЕМЕ (контрастные) ---- */
         body.dark-mode .table {
             background: #2c3e50;
             border-color: #e67e22;
@@ -316,10 +474,6 @@
         body.dark-mode .table-hover > tbody > tr:hover td {
             color: #ecf0f1;
         }
-        body.dark-mode .table-hover > tbody > tr:hover th {
-            color: #1e2a36; /* заголовки при наведении не меняем */
-        }
-
         body.dark-mode .filter-section input,
         body.dark-mode .filter-section select {
             background: #3d4f5e;
@@ -341,7 +495,6 @@
         body.dark-mode .toast-custom.danger { background: #922b21; }
         body.dark-mode .toast-custom.warning { background: #d4ac0d; color: #2c3e50; }
 
-        /* Яркие кнопки в тёмной теме */
         body.dark-mode .btn-outline-accent {
             border-color: #f1c40f;
             color: #f1c40f;
@@ -360,7 +513,6 @@
             color: #fff;
         }
 
-        /* Заголовки в тёмной теме */
         body.dark-mode h1,
         body.dark-mode h2,
         body.dark-mode h3,
@@ -385,7 +537,6 @@
             color: #a7c8f0;
         }
 
-        /* ---------- ЗАГОЛОВКИ ОБЩИЕ ---------- */
         h1, h2, h3, h4, h5 {
             font-family: var(--font-title);
             letter-spacing: 0.5px;
@@ -396,14 +547,16 @@
             padding-left: 15px;
         }
 
-        /* ---------- АДАПТИВ ---------- */
         @media (max-width: 576px) {
             .card-dashboard .card-body { padding: 1rem; }
             .login-container { margin: 30px 15px; padding: 30px 20px; }
             .table-responsive { font-size: 0.85rem; }
+            .chart-grid { padding-left: 30px; }
+            .chart-y-axis { left: 20px; }
+            .chart-y-labels { width: 20px; font-size: 8px; }
+            .chart-y-labels span { padding-right: 4px; }
         }
 
-        /* ---------- БЭДЖИ ---------- */
         .badge.bg-success { background: #27ae60 !important; }
         .badge.bg-warning { background: var(--brick-light) !important; color: #2c3e50; }
         .badge.bg-danger { background: var(--brick-red) !important; }
@@ -629,6 +782,7 @@
             const overdue = rentals.filter(r => r.status === 'активна' && new Date(r.planned_return) < todayDate);
             const returningSoon = rentals.filter(r => r.status === 'активна' && (daysBetween(today, r.planned_return) >= 0 && daysBetween(today, r.planned_return) <= 2));
 
+            // ----- НОВЫЙ ГРАФИК (строительный) -----
             const chartData = [];
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(today); d.setDate(d.getDate() - i);
@@ -637,6 +791,9 @@
                 chartData.push({ date: dateStr, revenue: dayRevenue });
             }
             const maxRevenue = Math.max(...chartData.map(d => d.revenue), 1);
+            // Если maxRevenue == 0, чтобы не делить на ноль
+            const maxVal = maxRevenue > 0 ? maxRevenue : 1;
+
             const recent = [...rentals].filter(r => r.status !== 'забронирована').sort((a, b) => (b.id || '').localeCompare(a.id || '')).slice(0, 5);
 
             const statusCounts = {
@@ -652,6 +809,43 @@
                 percent: (count / totalStatus * 100).toFixed(1)
             }));
 
+            // Строим график
+            let chartHtml = `
+            <div class="chart-wrapper">
+                <div class="chart-grid" id="chartGrid">
+                    <!-- Ось Y (кран) -->
+                    <div class="chart-y-axis"></div>
+                    <!-- Ось X (бетон) -->
+                    <div class="chart-x-axis"></div>
+                    <!-- Метки по Y -->
+                    <div class="chart-y-labels">
+                        <span>${maxVal} ₽</span>
+                        <span>${Math.round(maxVal * 0.75)}</span>
+                        <span>${Math.round(maxVal * 0.5)}</span>
+                        <span>${Math.round(maxVal * 0.25)}</span>
+                        <span>0</span>
+                    </div>
+                    <!-- Точки графика -->
+                    <div class="chart-points" id="chartPoints">
+            `;
+
+            chartData.forEach((d, index) => {
+                const heightPercent = (d.revenue / maxVal) * 100;
+                const leftPercent = (index / (chartData.length - 1)) * 100;
+                // Вертикальная линия (трос)
+                chartHtml += `<div class="chart-point-line" style="left:${leftPercent}%; height:${heightPercent}%; bottom:0;"></div>`;
+                // Точка
+                chartHtml += `<div class="chart-point" style="left:${leftPercent}%; bottom:${heightPercent}%;" data-revenue="${d.revenue}" data-date="${formatDate(d.date)}"></div>`;
+            });
+
+            chartHtml += `
+                    </div>
+                </div>
+            </div>
+            <div class="chart-tooltip" id="chartTooltip"></div>
+            `;
+
+            // Далее обычный дашборд
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1>Дашборд</h1>
@@ -740,18 +934,10 @@
                 </div>
             </div>
 
+            <!-- НОВЫЙ ГРАФИК -->
             <div class="chart-container mt-4">
-                <h5>Выручка за последние 7 дней (кликните по столбцу)</h5>
-                <div class="chart-bar">
-                    ${chartData.map(d => `
-                    <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                        <div class="chart-bar-item" style="height: ${(d.revenue / maxRevenue) * 100}%; min-height: 6px; background: ${d.revenue > 0 ? '#b7956b' : '#e9ecef'};" onclick="showDayDetails('${d.date}')">
-                            <span class="tooltip-text">${d.revenue} ₽</span>
-                        </div>
-                        <div class="chart-label">${formatDateShort(d.date)}</div>
-                    </div>
-                    `).join('')}
-                </div>
+                <h5>Выручка за последние 7 дней (наведите на точку)</h5>
+                ${chartHtml}
             </div>
 
             <h4 class="mt-4">Последние аренды</h4>
@@ -765,25 +951,33 @@
                     }).join('')
                 }
                 </tbody></table></div>`;
+
             render(container, html);
+
+            // После рендера добавляем обработчики для тултипов
+            setTimeout(() => {
+                const points = document.querySelectorAll('.chart-point');
+                const tooltip = document.getElementById('chartTooltip');
+                if (!tooltip) return;
+                points.forEach(point => {
+                    point.addEventListener('mouseenter', function(e) {
+                        const revenue = this.dataset.revenue;
+                        const date = this.dataset.date;
+                        tooltip.textContent = `${date}: ${revenue} ₽`;
+                        tooltip.style.display = 'block';
+                    });
+                    point.addEventListener('mousemove', function(e) {
+                        tooltip.style.left = (e.clientX + 10) + 'px';
+                        tooltip.style.top = (e.clientY - 10) + 'px';
+                    });
+                    point.addEventListener('mouseleave', function() {
+                        tooltip.style.display = 'none';
+                    });
+                });
+            }, 50);
         }
 
-        window.showDayDetails = function(date) {
-            const dayRentals = rentals.filter(r => r.status === 'закрыта' && r.actual_return === date);
-            if (dayRentals.length === 0) {
-                showToast('За этот день нет закрытых аренд', 'warning');
-                return;
-            }
-            let msg = `Аренды за ${formatDate(date)}:\n`;
-            dayRentals.forEach(r => {
-                const c = getClientById(r.client_id);
-                const t = getToolById(r.tool_id);
-                msg += `${c ? c.name : '—'} — ${t ? t.model : '—'} (${r.total_cost || 0}₽)\n`;
-            });
-            alert(msg);
-        };
-
-        // ---------- ИНСТРУМЕНТЫ ----------
+        // ---------- ОСТАЛЬНЫЕ СТРАНИЦЫ (без изменений) ----------
         function renderTools(container) {
             const searchInput = document.getElementById('toolSearch');
             const statusSelect = document.getElementById('toolStatus');
