@@ -3,203 +3,315 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>СК Квадрант</title>
+    <title>СК Квадрант – Строительный учёт</title>
+    <!-- Bootstrap + иконки -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Шрифты: Oswald для заголовков, Inter для текста -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { padding-top: 70px; background: #f4f6fa; transition: 0.3s; }
-        .navbar-brand { font-weight: 800; letter-spacing: -0.5px; color: #fff !important; }
-        .brand-highlight { color: #ffc107; }
-        .card-dashboard {
-            transition: 0.3s;
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            background: #fff;
+        /* ----- Общие строительные переменные ----- */
+        :root {
+            --brick-red: #C0392B;
+            --brick-dark: #A93226;
+            --brick-light: #E67E22;
+            --sand: #F5CBA7;
+            --concrete: #BDC3C7;
+            --dark-graphite: #2C3E50;
+            --font-title: 'Oswald', sans-serif;
+            --font-text: 'Inter', sans-serif;
         }
-        .card-dashboard:hover { transform: translateY(-6px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
-        .card-dashboard .card-body { padding: 1.5rem; }
-        .card-dashboard h5 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
-        .card-dashboard h2, .card-dashboard h3 { font-weight: 700; }
+
+        * { font-family: var(--font-text); }
+        body {
+            padding-top: 70px;
+            background: #e8d5b7; /* песочный фон под кирпич */
+            background-image:
+                linear-gradient(45deg, #d4b48c 25%, transparent 25%),
+                linear-gradient(-45deg, #d4b48c 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #d4b48c 75%),
+                linear-gradient(-45deg, transparent 75%, #d4b48c 75%);
+            background-size: 60px 60px;
+            background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+            background-color: #e8d5b7;
+            transition: 0.3s;
+        }
+
+        /* Навигация – как стройплощадка */
+        .navbar-dark.bg-dark {
+            background: var(--dark-graphite) !important;
+            border-bottom: 4px solid var(--brick-light);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .navbar-brand {
+            font-family: var(--font-title);
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #f1c40f !important;
+            text-shadow: 2px 2px 0 var(--brick-dark);
+        }
+        .navbar-brand i { color: var(--brick-light); }
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            color: #ecf0f1 !important;
+            transition: 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            border-bottom-color: var(--brick-light);
+            color: #f1c40f !important;
+        }
+
+        /* Карточки – строительные блоки */
+        .card, .card-dashboard, .filter-section, .chart-container, .login-container {
+            background: #fcf8f0;
+            border: 3px solid #b7956b;
+            border-radius: 0 12px 0 12px;
+            box-shadow: 6px 6px 0 rgba(44, 62, 80, 0.2);
+            transition: 0.3s;
+        }
+        .card-dashboard:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 10px 10px 0 rgba(192, 57, 43, 0.25);
+        }
+        .card-dashboard .card-body {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 0 8px 0 8px;
+        }
+        .card-dashboard h5 {
+            font-family: var(--font-title);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--dark-graphite);
+        }
+        .card-dashboard h2, .card-dashboard h3 {
+            font-family: var(--font-title);
+            font-weight: 700;
+            color: var(--brick-dark);
+        }
+
+        /* Кнопки в стиле "кирпич" */
+        .btn-primary {
+            background: var(--brick-red);
+            border-color: var(--brick-dark);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+            transition: 0.15s;
+        }
+        .btn-primary:hover {
+            background: var(--brick-dark);
+            border-color: var(--brick-red);
+            transform: translateY(-2px);
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.25);
+        }
+        .btn-success {
+            background: #27ae60;
+            border-color: #1e8449;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+        .btn-success:hover {
+            background: #1e8449;
+            transform: translateY(-2px);
+        }
+        .btn-warning {
+            background: var(--brick-light);
+            border-color: #d35400;
+            font-weight: 600;
+            color: #2c3e50;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+        .btn-warning:hover {
+            background: #d35400;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: var(--concrete);
+            border-color: #95a5a6;
+            font-weight: 500;
+            color: #2c3e50;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+        }
+        .btn-secondary:hover {
+            background: #95a5a6;
+            transform: translateY(-2px);
+        }
+
+        /* Фильтры и таблицы */
         .filter-section {
-            background: #fff;
+            background: #fcf8f0;
+            border: 2px solid #b7956b;
+            border-radius: 0 8px 0 8px;
             padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             margin-bottom: 20px;
-            transition: 0.3s;
         }
-        .table th { font-weight: 600; color: #2c3e50; border-top: none; }
-        .table td { vertical-align: middle; }
-        .rental-badge { font-size: 0.7rem; padding: 0.35rem 0.65rem; border-radius: 20px; }
+        .table {
+            background: rgba(255, 252, 245, 0.8);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #b7956b;
+        }
+        .table th {
+            font-family: var(--font-title);
+            font-weight: 600;
+            background: #b7956b;
+            color: #2c3e50;
+            border: none;
+            padding: 12px 8px;
+        }
+        .table td {
+            border-color: #d5c1a4;
+            vertical-align: middle;
+        }
+        .table-hover tbody tr:hover {
+            background: rgba(192, 57, 43, 0.08);
+        }
+        .rental-badge {
+            font-size: 0.7rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* Строительные иконки в карточках */
+        .brand-icon {
+            font-size: 3rem;
+            color: var(--brick-red);
+        }
+
+        /* Login container – как строительный вагончик */
         .login-container {
-            max-width: 420px;
-            margin: 60px auto;
-            background: #fff;
+            background: #fcf8f0;
+            border: 4px solid #b7956b;
+            border-radius: 0 20px 0 20px;
+            box-shadow: 12px 12px 0 rgba(44, 62, 80, 0.2);
             padding: 40px 30px;
-            border-radius: 24px;
-            box-shadow: 0 12px 48px rgba(0,0,0,0.08);
         }
-        .login-container h2 { font-weight: 700; color: #1a1a2e; }
-        .login-container .brand-icon { font-size: 2.5rem; color: #0d6efd; }
-        .hidden { display: none; }
+        .login-container h2 {
+            font-family: var(--font-title);
+            color: var(--dark-graphite);
+        }
+
+        /* График */
         .chart-container {
-            background: #fff;
-            border-radius: 16px;
+            background: #fcf8f0;
+            border: 2px solid #b7956b;
+            border-radius: 0 12px 0 12px;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .chart-bar {
-            display: flex;
-            align-items: flex-end;
-            height: 140px;
-            gap: 8px;
-            padding-top: 12px;
         }
         .chart-bar-item {
-            flex: 1;
-            min-height: 6px;
-            border-radius: 6px 6px 0 0;
+            background: #b7956b;
             transition: 0.3s;
-            position: relative;
-            cursor: pointer;
-            background: #e9ecef;
         }
-        .chart-bar-item:hover { opacity: 0.8; transform: scaleY(1.03); }
-        .chart-bar-item .tooltip-text {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            color: #fff;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            white-space: nowrap;
-            display: none;
-            font-weight: 500;
+        .chart-bar-item:hover {
+            background: var(--brick-red);
         }
-        .chart-bar-item:hover .tooltip-text { display: block; }
-        .chart-label {
-            font-size: 10px;
-            text-align: center;
-            margin-top: 6px;
-            color: #6c757d;
-            font-weight: 500;
-        }
-        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
-        .toast-custom {
-            background: #1a1a2e;
-            color: #fff;
-            border-radius: 12px;
-            padding: 14px 24px;
-            margin-bottom: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideUp 0.3s ease;
-        }
-        .toast-custom.success { background: #198754; }
-        .toast-custom.danger { background: #dc3545; }
-        .toast-custom.warning { background: #ffc107; color: #1a1a2e; }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .spinner-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9998;
-        }
-        .spinner-overlay .spinner-border { width: 3rem; height: 3rem; }
-        @media (max-width: 576px) {
-            .card-dashboard .card-body { padding: 1rem; }
-            .login-container { margin: 30px 15px; padding: 30px 20px; }
-            .table-responsive { font-size: 0.85rem; }
-        }
-        [data-tooltip] { position: relative; }
-        [data-tooltip]:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: calc(100% + 6px);
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            color: #fff;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            white-space: nowrap;
-            font-weight: 500;
-            z-index: 1000;
-        }
-        .fade-enter { opacity: 0; transform: translateY(10px); }
-        .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.3s ease; }
 
+        /* Тёмная тема для строительного стиля */
         body.dark-mode {
-            background: #1a1a2e;
-            color: #e0e0e0;
+            background-color: #2c3e50;
+            background-image: none;
         }
         body.dark-mode .card,
         body.dark-mode .filter-section,
         body.dark-mode .chart-container,
         body.dark-mode .login-container {
-            background: #2d2d44;
-            color: #e0e0e0;
+            background: #3d4f5e;
+            border-color: #5d6d7e;
+            color: #ecf0f1;
+        }
+        body.dark-mode .card-dashboard .card-body {
+            background: rgba(0,0,0,0.2);
+        }
+        body.dark-mode .card-dashboard h5,
+        body.dark-mode .card-dashboard h2,
+        body.dark-mode .card-dashboard h3 {
+            color: #f1c40f;
         }
         body.dark-mode .table {
-            color: #e0e0e0;
+            background: rgba(0,0,0,0.3);
+            border-color: #5d6d7e;
         }
-        body.dark-mode .table th,
+        body.dark-mode .table th {
+            background: #5d6d7e;
+            color: #f1c40f;
+        }
         body.dark-mode .table td {
-            color: #e0e0e0;
-            border-color: #444;
+            border-color: #5d6d7e;
+            color: #ecf0f1;
         }
-        body.dark-mode .table-striped>tbody>tr:nth-of-type(odd)>* {
-            background-color: rgba(255,255,255,0.03);
+        body.dark-mode .table-hover tbody tr:hover {
+            background: rgba(241, 196, 15, 0.1);
         }
-        body.dark-mode .table-hover>tbody>tr:hover>* {
-            background-color: rgba(255,255,255,0.05);
+        body.dark-mode .btn-secondary {
+            background: #5d6d7e;
+            border-color: #7f8c8d;
+            color: #ecf0f1;
         }
-        body.dark-mode .btn-outline-secondary {
-            color: #ddd;
-            border-color: #555;
+        body.dark-mode .btn-secondary:hover {
+            background: #7f8c8d;
         }
-        body.dark-mode .btn-outline-secondary:hover {
-            color: #fff;
-            background-color: #555;
+        body.dark-mode .filter-section {
+            background: #3d4f5e;
+            border-color: #5d6d7e;
         }
-        body.dark-mode .text-muted {
-            color: #aaa !important;
+        body.dark-mode .navbar-dark.bg-dark {
+            background: #1a252f !important;
+            border-bottom-color: #f1c40f;
         }
-        body.dark-mode .alert-success {
-            background-color: #1e3a2a;
-            border-color: #2d6a4f;
-            color: #a7f0ba;
+        body.dark-mode .toast-custom {
+            background: #2c3e50;
+            color: #ecf0f1;
         }
-        body.dark-mode .alert-info {
-            background-color: #1e2f4a;
-            border-color: #2a4a6a;
-            color: #a7c8f0;
+        body.dark-mode .toast-custom.success { background: #1e8449; }
+        body.dark-mode .toast-custom.danger { background: #922b21; }
+        body.dark-mode .toast-custom.warning { background: #d4ac0d; color: #2c3e50; }
+
+        /* Кирпичный акцент для заголовков */
+        h1, h2, h3, h4, h5 {
+            font-family: var(--font-title);
+            letter-spacing: 0.5px;
+        }
+        h1 {
+            color: var(--brick-dark);
+            border-left: 6px solid var(--brick-light);
+            padding-left: 15px;
+        }
+        body.dark-mode h1 {
+            color: #f1c40f;
+            border-left-color: #f1c40f;
+        }
+
+        /* Мелкие штрихи */
+        .badge.bg-success { background: #27ae60 !important; }
+        .badge.bg-warning { background: var(--brick-light) !important; color: #2c3e50; }
+        .badge.bg-danger { background: var(--brick-red) !important; }
+        .badge.bg-info { background: #2980b9 !important; }
+        .badge.bg-secondary { background: var(--concrete) !important; color: #2c3e50; }
+
+        /* Адаптив */
+        @media (max-width: 576px) {
+            .card-dashboard .card-body { padding: 1rem; }
+            .login-container { margin: 30px 15px; padding: 30px 20px; }
+            .table-responsive { font-size: 0.85rem; }
         }
     </style>
 </head>
 <body>
 
+<!-- НАВИГАЦИЯ -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
     <div class="container">
         <span class="navbar-brand" style="cursor:default;">
-            <i class="bi bi-tools me-2"></i>СК <span class="brand-highlight">Квадрант</span>
+            <i class="bi bi-tools me-2"></i>СК <span style="color:#f1c40f;">Квадрант</span>
         </span>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
@@ -223,6 +335,7 @@
     </div>
 </nav>
 
+<!-- ОСНОВНОЙ КОНТЕЙНЕР -->
 <div class="container" id="app">
     <div id="loginPage" class="login-container">
         <div class="text-center mb-4">
@@ -274,15 +387,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+    // ================================================================
+    // Весь JavaScript остаётся БЕЗ ИЗМЕНЕНИЙ – полная копия рабочей версии
+    // с поиском, фильтрами, пагинацией и т.д.
+    // ================================================================
     (function() {
         'use strict';
 
-        // ----- SUPABASE -----
         const SUPABASE_URL = 'https://jptbqcbpllffgufusibj.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ----- Вспомогательные -----
         function genId() { return Date.now().toString(36) + Math.random().toString(36).substring(2, 8); }
         function todayStr() { return new Date().toISOString().split('T')[0]; }
         function formatDate(dateStr) { if (!dateStr) return '—'; return new Date(dateStr).toLocaleDateString('ru-RU'); }
@@ -333,7 +448,6 @@
             setTimeout(() => { toast.remove(); }, 4000);
         }
 
-        // ----- Навигация (простой стек) -----
         let historyStack = ['dashboard'];
         let currentPage = 'dashboard';
 
@@ -383,12 +497,11 @@
         window.navigate = navigate;
         window.goBack = goBack;
 
-        // ----- Рендер-функции -----
         function render(container, html) {
             container.innerHTML = html;
         }
 
-        // ---------- ДАШБОРД (без изменений) ----------
+        // ---------- ДАШБОРД ----------
         function renderDashboard(container) {
             const total = tools.length;
             const available = tools.filter(t => t.status === 'в наличии').length;
@@ -522,7 +635,7 @@
                 <div class="chart-bar">
                     ${chartData.map(d => `
                     <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                        <div class="chart-bar-item" style="height: ${(d.revenue / maxRevenue) * 100}%; min-height: 6px; background: ${d.revenue > 0 ? '#0d6efd' : '#e9ecef'};" onclick="showDayDetails('${d.date}')">
+                        <div class="chart-bar-item" style="height: ${(d.revenue / maxRevenue) * 100}%; min-height: 6px; background: ${d.revenue > 0 ? '#b7956b' : '#e9ecef'};" onclick="showDayDetails('${d.date}')">
                             <span class="tooltip-text">${d.revenue} ₽</span>
                         </div>
                         <div class="chart-label">${formatDateShort(d.date)}</div>
@@ -560,9 +673,8 @@
             alert(msg);
         };
 
-        // ---------- ИНСТРУМЕНТЫ (С ПОИСКОМ И ФИЛЬТРОМ) ----------
+        // ---------- ИНСТРУМЕНТЫ ----------
         function renderTools(container) {
-            // Получаем значения фильтров из DOM (если они уже есть)
             const searchInput = document.getElementById('toolSearch');
             const statusSelect = document.getElementById('toolStatus');
             const search = searchInput ? searchInput.value : '';
@@ -706,7 +818,7 @@
             navigate('tools');
         };
 
-        // ---------- КЛИЕНТЫ (С ПОИСКОМ) ----------
+        // ---------- КЛИЕНТЫ ----------
         function renderClients(container) {
             const searchInput = document.getElementById('clientSearch');
             const search = searchInput ? searchInput.value : '';
@@ -966,7 +1078,7 @@
             navigate('dashboard');
         };
 
-        // ---------- АКТИВНЫЕ (С ПОИСКОМ) ----------
+        // ---------- АКТИВНЫЕ ----------
         function renderActiveRentals(container) {
             const searchInput = document.getElementById('activeSearch');
             const search = searchInput ? searchInput.value : '';
@@ -1218,7 +1330,7 @@
             navigate('repair');
         };
 
-        // ---------- ИСТОРИЯ (С ПОИСКОМ И ФИЛЬТРОМ) ----------
+        // ---------- ИСТОРИЯ ----------
         function renderHistory(container) {
             const searchInput = document.getElementById('historySearch');
             const filterSelect = document.getElementById('historyFilter');
