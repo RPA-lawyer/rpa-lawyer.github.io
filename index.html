@@ -4,13 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>СК Квадрант — Учёт аренды</title>
-    <!-- Bootstrap + иконки -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', sans-serif; }
-        body { padding-top: 70px; background: #f4f6fa; }
+        body { padding-top: 70px; background: #f4f6fa; transition: background 0.3s, color 0.3s; }
         .navbar-brand { font-weight: 800; letter-spacing: -0.5px; color: #fff !important; }
         .brand-highlight { color: #ffc107; }
         .card-dashboard {
@@ -18,11 +17,9 @@
             border: none;
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background: #fff;
         }
-        .card-dashboard:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.10);
-        }
+        .card-dashboard:hover { transform: translateY(-6px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
         .card-dashboard .card-body { padding: 1.5rem; }
         .card-dashboard h5 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
         .card-dashboard h2, .card-dashboard h3 { font-weight: 700; }
@@ -33,6 +30,7 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             margin-bottom: 20px;
+            transition: background 0.3s;
         }
         .table th { font-weight: 600; color: #2c3e50; border-top: none; }
         .table td { vertical-align: middle; }
@@ -55,6 +53,7 @@
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: background 0.3s;
         }
         .chart-bar {
             display: flex;
@@ -72,10 +71,7 @@
             cursor: pointer;
             background: #e9ecef;
         }
-        .chart-bar-item:hover {
-            opacity: 0.8;
-            transform: scaleY(1.03);
-        }
+        .chart-bar-item:hover { opacity: 0.8; transform: scaleY(1.03); }
         .chart-bar-item .tooltip-text {
             position: absolute;
             bottom: 100%;
@@ -158,13 +154,39 @@
         .fade-enter { opacity: 0; transform: translateY(10px); }
         .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.3s ease; }
 
-        /* Дополнительно для улучшения интерфейса */
-        .btn-back { margin-right: 10px; }
+        /* Тёмная тема */
+        body.dark-mode {
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+        body.dark-mode .card,
+        body.dark-mode .filter-section,
+        body.dark-mode .chart-container,
+        body.dark-mode .login-container {
+            background: #2d2d44;
+            color: #e0e0e0;
+        }
+        body.dark-mode .table {
+            color: #e0e0e0;
+        }
+        body.dark-mode .table th {
+            color: #ddd;
+        }
+        body.dark-mode .table-striped>tbody>tr:nth-of-type(odd)>* {
+            background-color: rgba(255,255,255,0.03);
+        }
+        body.dark-mode .btn-outline-secondary {
+            color: #ddd;
+            border-color: #555;
+        }
+        body.dark-mode .btn-outline-secondary:hover {
+            color: #fff;
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
 
-<!-- НАВИГАЦИЯ -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
     <div class="container">
         <span class="navbar-brand" style="cursor:default;">
@@ -192,9 +214,7 @@
     </div>
 </nav>
 
-<!-- ОСНОВНОЙ КОНТЕЙНЕР -->
 <div class="container" id="app">
-    <!-- Логин -->
     <div id="loginPage" class="login-container">
         <div class="text-center mb-4">
             <i class="bi bi-tools brand-icon"></i>
@@ -216,7 +236,6 @@
         </form>
     </div>
 
-    <!-- Регистрация -->
     <div id="registerPage" class="login-container hidden">
         <div class="text-center mb-4">
             <i class="bi bi-person-plus brand-icon"></i>
@@ -237,13 +256,11 @@
         </form>
     </div>
 
-    <!-- Основное приложение -->
     <div id="mainApp" class="hidden">
         <div id="appContent"></div>
     </div>
 </div>
 
-<!-- Контейнер для уведомлений -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -251,12 +268,11 @@
     (function() {
         'use strict';
 
-        // ===== SUPABASE =====
         const SUPABASE_URL = 'https://jptbqcbpllffgufusibj.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+        // Вспомогательные функции
         function genId() { return Date.now().toString(36) + Math.random().toString(36).substring(2, 8); }
         function todayStr() { return new Date().toISOString().split('T')[0]; }
         function formatDate(dateStr) { if (!dateStr) return '—'; return new Date(dateStr).toLocaleDateString('ru-RU'); }
@@ -271,12 +287,8 @@
             return map[status] || 'secondary';
         }
 
-        // ===== ГЛОБАЛЬНЫЕ ДАННЫЕ =====
         let tools = [], clients = [], rentals = [];
-        let currentPage = 'dashboard'; // для кнопки "Назад"
-        let previousPage = 'dashboard';
 
-        // ===== ЗАГРУЗКА ДАННЫХ =====
         async function loadTools() { const { data, error } = await supabase.from('tools').select('*'); if (error) { console.error(error); return []; } return data || []; }
         async function loadClients() { const { data, error } = await supabase.from('clients').select('*'); if (error) { console.error(error); return []; } return data || []; }
         async function loadRentals() { const { data, error } = await supabase.from('rentals').select('*'); if (error) { console.error(error); return []; } return data || []; }
@@ -285,11 +297,9 @@
             [tools, clients, rentals] = await Promise.all([loadTools(), loadClients(), loadRentals()]);
             hideSpinner();
         }
-
         function getToolById(id) { return tools.find(t => t.id === id); }
         function getClientById(id) { return clients.find(c => c.id === id); }
 
-        // ===== СПИННЕР =====
         function showSpinner() {
             if (!document.getElementById('spinnerOverlay')) {
                 const overlay = document.createElement('div');
@@ -304,7 +314,6 @@
             if (el) el.remove();
         }
 
-        // ===== УВЕДОМЛЕНИЯ =====
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -314,14 +323,12 @@
             setTimeout(() => { toast.remove(); }, 4000);
         }
 
-              // ============================================================
-        // НОВАЯ СИСТЕМА СОСТОЯНИЯ, НАВИГАЦИИ И РЕНДЕРИНГА
         // ============================================================
-
-        // ----- ГЛОБАЛЬНОЕ СОСТОЯНИЕ -----
+        // ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+        // ============================================================
         const state = {
             currentPage: 'dashboard',
-            history: ['dashboard'],      // стек для кнопки «Назад»
+            history: ['dashboard'],
             filters: {
                 tools: { search: '', status: '' },
                 clients: { search: '' },
@@ -346,7 +353,94 @@
             darkMode: false
         };
 
-        // ----- ДЕЛЕГИРОВАНИЕ СОБЫТИЙ (один обработчик на весь контент) -----
+        // ============================================================
+        // НАВИГАЦИЯ
+        // ============================================================
+        function navigate(page, pushHistory = true) {
+            if (pushHistory && state.history[state.history.length - 1] !== page) {
+                state.history.push(page);
+            }
+            state.currentPage = page;
+            document.querySelectorAll('#navList .nav-link').forEach(el => el.classList.remove('active'));
+            const link = document.querySelector(`#navList .nav-link[data-page="${page}"]`);
+            if (link) link.classList.add('active');
+            renderCurrentPage();
+        }
+
+        function goBack() {
+            if (state.history.length > 1) {
+                state.history.pop();
+                const prev = state.history[state.history.length - 1];
+                state.currentPage = prev;
+                renderCurrentPage();
+                document.querySelectorAll('#navList .nav-link').forEach(el => el.classList.remove('active'));
+                const link = document.querySelector(`#navList .nav-link[data-page="${prev}"]`);
+                if (link) link.classList.add('active');
+            } else {
+                navigate('dashboard');
+            }
+        }
+
+        // ============================================================
+        // ОСНОВНОЙ РЕНДЕР
+        // ============================================================
+        function renderCurrentPage() {
+            const container = document.getElementById('appContent');
+            container.classList.remove('fade-enter-active');
+            container.classList.add('fade-enter');
+            switch (state.currentPage) {
+                case 'dashboard':       renderDashboard(container); break;
+                case 'tools':           renderTools(container); break;
+                case 'clients':         renderClients(container); break;
+                case 'newRental':       renderNewRental(container); break;
+                case 'activeRentals':   renderActiveRentals(container); break;
+                case 'bookings':        renderBookings(container); break;
+                case 'returnRental':    renderReturnRental(container); break;
+                case 'repair':          renderRepair(container); break;
+                case 'history':         renderHistory(container); break;
+                default: renderDashboard(container);
+            }
+            requestAnimationFrame(() => {
+                container.classList.remove('fade-enter');
+                container.classList.add('fade-enter-active');
+            });
+        }
+
+        function render(container, html) {
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        // ВСПОМОГАТЕЛЬНЫЕ ДЛЯ ПАГИНАЦИИ И СОРТИРОВКИ
+        // ============================================================
+        function applyPaginationAndSort(items, pageKey) {
+            const sort = state.sort[pageKey];
+            const pag = state.pagination[pageKey];
+            if (!sort || !pag) return { items, total: items.length, page: 1, perPage: 10, totalPages: 1 };
+            const sorted = [...items].sort((a, b) => {
+                let valA = a[sort.field] || '';
+                let valB = b[sort.field] || '';
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return sort.order === 'asc' ? -1 : 1;
+                if (valA > valB) return sort.order === 'asc' ? 1 : -1;
+                return 0;
+            });
+            const start = (pag.page - 1) * pag.perPage;
+            const end = start + pag.perPage;
+            const paginated = sorted.slice(start, end);
+            return {
+                items: paginated,
+                total: items.length,
+                page: pag.page,
+                perPage: pag.perPage,
+                totalPages: Math.ceil(items.length / pag.perPage)
+            };
+        }
+
+        // ============================================================
+        // ДЕЛЕГИРОВАНИЕ СОБЫТИЙ
+        // ============================================================
         document.getElementById('appContent').addEventListener('click', function(e) {
             const target = e.target.closest('[data-action]');
             if (!target) return;
@@ -362,11 +456,9 @@
         document.getElementById('appContent').addEventListener('input', function(e) {
             const target = e.target;
             if (target.dataset.filter) {
-                const filterKey = target.dataset.filter;
-                const [page, field] = filterKey.split('.');
+                const [page, field] = target.dataset.filter.split('.');
                 if (state.filters[page]) {
                     state.filters[page][field] = target.value;
-                    // Сброс страницы при изменении фильтра
                     if (state.pagination[page]) state.pagination[page].page = 1;
                     renderCurrentPage();
                 }
@@ -384,8 +476,7 @@
         document.getElementById('appContent').addEventListener('change', function(e) {
             const target = e.target;
             if (target.dataset.filter) {
-                const filterKey = target.dataset.filter;
-                const [page, field] = filterKey.split('.');
+                const [page, field] = target.dataset.filter.split('.');
                 if (state.filters[page]) {
                     state.filters[page][field] = target.value;
                     if (state.pagination[page]) state.pagination[page].page = 1;
@@ -413,88 +504,11 @@
             }
         });
 
-        // ----- НАВИГАЦИЯ -----
-        function navigate(page, pushHistory = true) {
-            if (pushHistory && state.history[state.history.length - 1] !== page) {
-                state.history.push(page);
-            }
-            state.currentPage = page;
-            // Активируем пункт меню
-            document.querySelectorAll('#navList .nav-link').forEach(el => el.classList.remove('active'));
-            const link = document.querySelector(`#navList .nav-link[data-page="${page}"]`);
-            if (link) link.classList.add('active');
-            renderCurrentPage();
-        }
+        // ============================================================
+        // СТРАНИЦЫ РЕНДЕРИНГА
+        // ============================================================
 
-        function goBack() {
-            if (state.history.length > 1) {
-                state.history.pop();
-                const prev = state.history[state.history.length - 1];
-                state.currentPage = prev;
-                renderCurrentPage();
-                // Обновить активный пункт меню
-                document.querySelectorAll('#navList .nav-link').forEach(el => el.classList.remove('active'));
-                const link = document.querySelector(`#navList .nav-link[data-page="${prev}"]`);
-                if (link) link.classList.add('active');
-            } else {
-                navigate('dashboard');
-            }
-        }
-
-        // ----- ОСНОВНОЙ РЕНДЕР (вызывает страницу по текущему состоянию) -----
-        function renderCurrentPage() {
-            const container = document.getElementById('appContent');
-            container.classList.remove('fade-enter-active');
-            container.classList.add('fade-enter');
-            switch (state.currentPage) {
-                case 'dashboard':       renderDashboard(container); break;
-                case 'tools':           renderTools(container); break;
-                case 'clients':         renderClients(container); break;
-                case 'newRental':       renderNewRental(container); break;
-                case 'activeRentals':   renderActiveRentals(container); break;
-                case 'bookings':        renderBookings(container); break;
-                case 'returnRental':    renderReturnRental(container); break;
-                case 'repair':          renderRepair(container); break;
-                case 'history':         renderHistory(container); break;
-                default: renderDashboard(container);
-            }
-            requestAnimationFrame(() => {
-                container.classList.remove('fade-enter');
-                container.classList.add('fade-enter-active');
-            });
-        }
-
-        // ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ПАГИНАЦИИ И СОРТИРОВКИ -----
-        function applyPaginationAndSort(items, pageKey) {
-            const sort = state.sort[pageKey];
-            const pag = state.pagination[pageKey];
-            if (!sort || !pag) return items;
-            // Сортировка
-            const sorted = [...items].sort((a, b) => {
-                let valA = a[sort.field] || '';
-                let valB = b[sort.field] || '';
-                if (typeof valA === 'string') valA = valA.toLowerCase();
-                if (typeof valB === 'string') valB = valB.toLowerCase();
-                if (valA < valB) return sort.order === 'asc' ? -1 : 1;
-                if (valA > valB) return sort.order === 'asc' ? 1 : -1;
-                return 0;
-            });
-            // Пагинация
-            const start = (pag.page - 1) * pag.perPage;
-            const end = start + pag.perPage;
-            const paginated = sorted.slice(start, end);
-            return {
-                items: paginated,
-                total: items.length,
-                page: pag.page,
-                perPage: pag.perPage,
-                totalPages: Math.ceil(items.length / pag.perPage)
-            };
-        }
-
-        // ----- ФУНКЦИИ РЕНДЕРИНГА СТРАНИЦ (используют состояние) -----
-
-        // -------------------- ДАШБОРД --------------------
+        // ---------- ДАШБОРД ----------
         function renderDashboard(container) {
             const total = tools.length;
             const available = tools.filter(t => t.status === 'в наличии').length;
@@ -512,7 +526,6 @@
             const overdue = rentals.filter(r => r.status === 'активна' && new Date(r.planned_return) < todayDate);
             const returningSoon = rentals.filter(r => r.status === 'активна' && (daysBetween(today, r.planned_return) >= 0 && daysBetween(today, r.planned_return) <= 2));
 
-            // График
             const chartData = [];
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(today); d.setDate(d.getDate() - i);
@@ -521,11 +534,8 @@
                 chartData.push({ date: dateStr, revenue: dayRevenue });
             }
             const maxRevenue = Math.max(...chartData.map(d => d.revenue), 1);
-
-            // Последние аренды (без пагинации, просто 5)
             const recent = [...rentals].filter(r => r.status !== 'забронирована').sort((a, b) => (b.id || '').localeCompare(a.id || '')).slice(0, 5);
 
-            // Круговая диаграмма статусов (простая)
             const statusCounts = {
                 'в наличии': available,
                 'в аренде': rented,
@@ -551,7 +561,6 @@
                     </button>
                 </div>
             </div>
-            <!-- Уведомления -->
             <div class="row g-3 mb-4">
                 ${overdue.length > 0 ? `
                 <div class="col-md-6">
@@ -578,7 +587,6 @@
                 ${overdue.length === 0 && returningSoon.length === 0 ? `<div class="col-12"><div class="alert alert-success">✅ Все аренды в порядке</div></div>` : ''}
             </div>
 
-            <!-- Карточки метрик -->
             <div class="row g-3">
                 <div class="col-md-2 col-6"><div class="card text-bg-primary card-dashboard"><div class="card-body"><h5>Всего</h5><h2>${total}</h2></div></div></div>
                 <div class="col-md-2 col-6"><div class="card text-bg-success card-dashboard"><div class="card-body"><h5>Свободно</h5><h2>${available}</h2></div></div></div>
@@ -588,14 +596,12 @@
                 <div class="col-md-2 col-6"><div class="card text-bg-secondary card-dashboard"><div class="card-body"><h5>Броней</h5><h2>${bookings}</h2></div></div></div>
             </div>
 
-            <!-- Дополнительные метрики -->
             <div class="row mt-4 g-3">
                 <div class="col-md-4"><div class="card card-dashboard"><div class="card-body"><h5>Выручка сегодня</h5><h3>${revenueToday} ₽</h3></div></div></div>
                 <div class="col-md-4"><div class="card card-dashboard"><div class="card-body"><h5>Выручка за месяц</h5><h3>${revenueMonth} ₽</h3></div></div></div>
                 <div class="col-md-4"><div class="card card-dashboard"><div class="card-body"><h5>Невозвращённые залоги</h5><h3>${totalDeposits} ₽</h3></div></div></div>
             </div>
 
-            <!-- Круговая диаграмма -->
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="card card-dashboard">
@@ -631,7 +637,6 @@
                 </div>
             </div>
 
-            <!-- График -->
             <div class="chart-container mt-4">
                 <h5>Выручка за последние 7 дней (кликните по столбцу)</h5>
                 <div class="chart-bar">
@@ -657,11 +662,9 @@
                     }).join('')
                 }
                 </tbody></table></div>`;
-
             render(container, html);
         }
 
-        // Функция для показа деталей дня (из графика) – обработчик через делегирование
         window.showDayDetails = function(date) {
             const dayRentals = rentals.filter(r => r.status === 'закрыта' && r.actual_return === date);
             if (dayRentals.length === 0) {
@@ -677,7 +680,7 @@
             alert(msg);
         };
 
-        // -------------------- ИНСТРУМЕНТЫ --------------------
+        // ---------- ИНСТРУМЕНТЫ ----------
         function renderTools(container) {
             const filters = state.filters.tools;
             let filtered = tools;
@@ -763,23 +766,12 @@
             render(container, html);
         }
 
-        // Обработчики для пагинации и действий через делегирование
-        window.pageTools = function(page) {
-            state.pagination.tools.page = parseInt(page);
-            renderCurrentPage();
-        };
-        window.addTool = function() {
-            // Вызов существующей функции _addTool
-            window._addTool();
-        };
-        window.editTool = function(id) {
-            window._editTool(id);
-        };
-        window.deleteTool = function(id) {
-            window._deleteTool(id);
-        };
+        window.pageTools = function(page) { state.pagination.tools.page = parseInt(page); renderCurrentPage(); };
+        window.addTool = function() { window._addTool(); };
+        window.editTool = function(id) { window._editTool(id); };
+        window.deleteTool = function(id) { window._deleteTool(id); };
 
-        // Аналогично для клиентов
+        // ---------- КЛИЕНТЫ ----------
         function renderClients(container) {
             const filters = state.filters.clients;
             let filtered = clients;
@@ -852,13 +844,11 @@
         window.editClient = function(id) { window._editClient(id); };
         window.deleteClient = function(id) { window._deleteClient(id); };
         window.showClientHistory = function(clientId) {
-            // Здесь мы не переходим на отдельную страницу, а показываем историю в модальном окне или как подстраницу
-            // Для простоты вызовем существующую функцию _showClientHistory, но она использует старую навигацию – перепишем.
-            // В новой логике мы можем открыть историю как подстраницу, но проще пока оставить как есть с goBack.
+            // используем функцию _showClientHistory, которую переопределим
             window._showClientHistory(clientId);
         };
 
-        // Переопределим _showClientHistory для использования новой навигации
+        // Переопределяем _showClientHistory для использования новой навигации
         const originalShowClientHistory = window._showClientHistory;
         window._showClientHistory = function(clientId) {
             const client = getClientById(clientId);
@@ -896,14 +886,641 @@
                 }
                 </tbody></table></div>`;
             render(container, html);
-            // Добавляем страницу в историю
             state.history.push('clientHistory');
         };
 
-        // Аналогично для остальных страниц (активные, брони, возврат, ТО, история) – нужно переписать с использованием состояния и делегирования.
-        // В целях экономии места я покажу только для истории как пример, остальные аналогично.
+        // ---------- ВЫДАТЬ ----------
+        function renderNewRental(container) {
+            const clientOpts = clients.map(c => `<option value="${c.id}">${c.name} (${c.phone})</option>`).join('');
+            const toolOpts = tools.filter(t => t.status === 'в наличии' || t.status === 'забронирован')
+                .map(t => {
+                    const label = t.status === 'забронирован' ? `🔒 ${t.model} (забронирован до ${formatDate(t.reserved_until)})` : `${t.model} (${t.inventory_number}) — ${t.price_per_day}₽/сут`;
+                    return `<option value="${t.id}">${label}</option>`;
+                }).join('');
+            const today = todayStr();
 
-        // -------------------- ИСТОРИЯ (с фильтром по дате) --------------------
+            let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1><i class="bi bi-plus-circle me-2"></i>Оформить аренду</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="window._saveRental(event)">
+                <div class="mb-3">
+                    <label>Клиент</label>
+                    <select id="rClient" class="form-select" required>
+                        <option value="">— Выберите —</option>
+                        ${clientOpts}
+                    </select>
+                    <small><a href="#" onclick="window._addClient(); return false;">➕ Добавить нового</a></small>
+                </div>
+                <div class="mb-3">
+                    <label>Инструмент</label>
+                    <select id="rTool" class="form-select" required>
+                        <option value="">— Выберите —</option>
+                        ${toolOpts}
+                    </select>
+                </div>
+                <div class="mb-3"><label>Дата выдачи</label><input id="rDate" type="date" class="form-control" value="${today}" required /></div>
+                <div class="mb-3"><label>Количество дней</label><input id="rDays" type="number" class="form-control" value="1" min="1" required /></div>
+                <div class="mb-3"><label>Комментарий</label><textarea id="rComment" class="form-control" rows="2" placeholder="Особые условия"></textarea></div>
+                <div class="mb-3 form-check">
+                    <input class="form-check-input" type="checkbox" id="rReserve">
+                    <label class="form-check-label" for="rReserve">Забронировать (инструмент будет недоступен до даты выдачи)</label>
+                </div>
+                <button type="submit" class="btn btn-success">Оформить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('dashboard')">Отмена</button>
+            </form>
+            `;
+            render(container, html);
+        }
+
+        // Функции CRUD – они уже есть, но переопределим для совместимости
+        window._addClient = function() {
+            const container = document.getElementById('appContent');
+            render(container, `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Добавить клиента</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="window._saveClient(event)">
+                <div class="mb-3"><label>ФИО</label><input id="fName" class="form-control" required /></div>
+                <div class="mb-3"><label>Телефон</label><input id="fPhone" class="form-control" required /></div>
+                <div class="mb-3"><label>Email</label><input id="fEmail" class="form-control" /></div>
+                <input type="hidden" id="fEditClientId" value="" />
+                <button type="submit" class="btn btn-success">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._editClient = function(id) {
+            const client = getClientById(id);
+            if (!client) return;
+            const container = document.getElementById('appContent');
+            render(container, `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Редактировать клиента</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="window._saveClient(event)">
+                <div class="mb-3"><label>ФИО</label><input id="fName" class="form-control" value="${client.name || ''}" required /></div>
+                <div class="mb-3"><label>Телефон</label><input id="fPhone" class="form-control" value="${client.phone || ''}" required /></div>
+                <div class="mb-3"><label>Email</label><input id="fEmail" class="form-control" value="${client.email || ''}" /></div>
+                <input type="hidden" id="fEditClientId" value="${id}" />
+                <button type="submit" class="btn btn-success">Обновить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._saveClient = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('fEditClientId').value;
+            const data = {
+                name: document.getElementById('fName').value.trim(),
+                phone: document.getElementById('fPhone').value.trim(),
+                email: document.getElementById('fEmail').value.trim()
+            };
+            showSpinner();
+            if (id) {
+                const { error } = await supabase.from('clients').update(data).eq('id', id);
+                if (error) { showToast('Ошибка обновления: ' + error.message, 'danger'); hideSpinner(); return; }
+            } else {
+                const newClient = { id: genId(), ...data };
+                const { error } = await supabase.from('clients').insert(newClient);
+                if (error) { showToast('Ошибка добавления: ' + error.message, 'danger'); hideSpinner(); return; }
+            }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Клиент сохранён', 'success');
+            navigate('clients');
+        };
+
+        window._deleteClient = async function(id) {
+            if (!confirm('Удалить клиента?')) return;
+            const hasActive = rentals.some(r => r.client_id === id && (r.status === 'активна' || r.status === 'забронирована'));
+            if (hasActive) {
+                showToast('Нельзя удалить клиента с активной арендой или броней', 'danger');
+                return;
+            }
+            showSpinner();
+            const { error } = await supabase.from('clients').delete().eq('id', id);
+            if (error) { showToast('Ошибка удаления: ' + error.message, 'danger'); hideSpinner(); return; }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Клиент удалён', 'success');
+            navigate('clients');
+        };
+
+        // Остальные CRUD (инструменты, аренды) – уже существуют, просто переназначим их для совместимости
+        window._addTool = function() {
+            const container = document.getElementById('appContent');
+            render(container, `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Добавить инструмент</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="window._saveTool(event)">
+                <div class="mb-3"><label>Инв. номер</label><input id="fInv" class="form-control" required /></div>
+                <div class="mb-3"><label>Категория</label><input id="fCat" class="form-control" required /></div>
+                <div class="mb-3"><label>Модель</label><input id="fModel" class="form-control" required /></div>
+                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" required /></div>
+                <div class="mb-3"><label>Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" required /></div>
+                <input type="hidden" id="fEditId" value="" />
+                <button type="submit" class="btn btn-success">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._editTool = function(id) {
+            const tool = getToolById(id);
+            if (!tool) return;
+            const container = document.getElementById('appContent');
+            render(container, `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Редактировать инструмент</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="window._saveTool(event)">
+                <div class="mb-3"><label>Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventory_number || ''}" required /></div>
+                <div class="mb-3"><label>Категория</label><input id="fCat" class="form-control" value="${tool.category || ''}" required /></div>
+                <div class="mb-3"><label>Модель</label><input id="fModel" class="form-control" value="${tool.model || ''}" required /></div>
+                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.price_per_day || 0}" required /></div>
+                <div class="mb-3"><label>Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" value="${tool.deposit || 0}" required /></div>
+                <input type="hidden" id="fEditId" value="${id}" />
+                <button type="submit" class="btn btn-success">Обновить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window._saveTool = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('fEditId').value;
+            const data = {
+                inventory_number: document.getElementById('fInv').value.trim(),
+                category: document.getElementById('fCat').value.trim(),
+                model: document.getElementById('fModel').value.trim(),
+                price_per_day: parseFloat(document.getElementById('fPrice').value) || 0,
+                deposit: parseFloat(document.getElementById('fDeposit').value) || 0,
+            };
+            showSpinner();
+            if (id) {
+                const { error } = await supabase.from('tools').update(data).eq('id', id);
+                if (error) { showToast('Ошибка обновления: ' + error.message, 'danger'); hideSpinner(); return; }
+            } else {
+                const newTool = { id: genId(), ...data, status: 'в наличии', repair_reason: '', repair_date: null };
+                const { error } = await supabase.from('tools').insert(newTool);
+                if (error) { showToast('Ошибка добавления: ' + error.message, 'danger'); hideSpinner(); return; }
+            }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Сохранено успешно', 'success');
+            navigate('tools');
+        };
+
+        window._deleteTool = async function(id) {
+            if (!confirm('Удалить инструмент?')) return;
+            showSpinner();
+            const { error } = await supabase.from('tools').delete().eq('id', id);
+            if (error) { showToast('Ошибка удаления: ' + error.message, 'danger'); hideSpinner(); return; }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Инструмент удалён', 'success');
+            navigate('tools');
+        };
+
+        window._saveRental = async function(e) {
+            e.preventDefault();
+            const clientId = document.getElementById('rClient').value;
+            const toolId = document.getElementById('rTool').value;
+            const days = parseInt(document.getElementById('rDays').value) || 1;
+            const issueDate = document.getElementById('rDate').value;
+            const comment = document.getElementById('rComment').value.trim();
+            const reserve = document.getElementById('rReserve').checked;
+
+            if (!clientId) { showToast('Выберите клиента', 'danger'); return; }
+            if (!toolId) { showToast('Выберите инструмент', 'danger'); return; }
+
+            const tool = getToolById(toolId);
+            if (!tool || (tool.status !== 'в наличии' && tool.status !== 'забронирован')) {
+                showToast('Инструмент недоступен', 'danger');
+                return;
+            }
+            if (tool.status === 'забронирован' && tool.reserved_until) {
+                if (new Date(tool.reserved_until) < new Date(issueDate)) {
+                    showToast('Бронь на этот инструмент истекла. Обновите страницу.', 'danger');
+                    return;
+                }
+            }
+
+            const planned = new Date(issueDate);
+            planned.setDate(planned.getDate() + days);
+
+            const rental = {
+                id: genId(),
+                rental_number: 'AR-' + Date.now().toString(36).toUpperCase(),
+                client_id: clientId,
+                tool_id: toolId,
+                issue_date: issueDate,
+                planned_return: planned.toISOString().split('T')[0],
+                actual_return: null,
+                price_per_day: tool.price_per_day,
+                total_cost: tool.price_per_day * days,
+                deposit: tool.deposit,
+                status: reserve ? 'забронирована' : 'активна',
+                return_condition: '',
+                comment: comment,
+                deposit_returned: false
+            };
+            const toolUpdate = {
+                status: reserve ? 'забронирован' : 'в аренде',
+                reserved_until: reserve ? issueDate : null
+            };
+
+            showSpinner();
+            const { error: toolError } = await supabase.from('tools').update(toolUpdate).eq('id', toolId);
+            if (toolError) { showToast('Ошибка обновления инструмента: ' + toolError.message, 'danger'); hideSpinner(); return; }
+            const { error: rentalError } = await supabase.from('rentals').insert(rental);
+            if (rentalError) { showToast('Ошибка создания аренды: ' + rentalError.message, 'danger'); hideSpinner(); return; }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Аренда оформлена', 'success');
+            navigate('dashboard');
+        };
+
+        // ---------- АКТИВНЫЕ АРЕНДЫ ----------
+        function renderActiveRentals(container) {
+            const filters = state.filters.activeRentals;
+            let filtered = rentals.filter(r => r.status === 'активна');
+            if (filters.search) {
+                const s = filters.search.toLowerCase();
+                filtered = filtered.filter(r => {
+                    const c = getClientById(r.client_id);
+                    const t = getToolById(r.tool_id);
+                    return (c?.name?.toLowerCase().includes(s) || t?.model?.toLowerCase().includes(s) || r.rental_number?.toLowerCase().includes(s));
+                });
+            }
+            const today = new Date(todayStr());
+            if (filters.status === 'просрочена') {
+                filtered = filtered.filter(r => new Date(r.planned_return) < today);
+            } else if (filters.status === 'soon') {
+                filtered = filtered.filter(r => {
+                    const diff = daysBetween(todayStr(), r.planned_return);
+                    return diff >= 0 && diff <= 2;
+                });
+            }
+            const pagResult = applyPaginationAndSort(filtered, 'activeRentals');
+            const { items, total, page, perPage, totalPages } = pagResult;
+
+            let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1><i class="bi bi-play-circle me-2"></i>Активные аренды</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <p class="text-muted">Всего активных: ${rentals.filter(r => r.status === 'активна').length}</p>
+            <div class="filter-section">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" placeholder="Поиск по клиенту, инструменту или №" data-filter="activeRentals.search" value="${filters.search}">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" data-filter="activeRentals.status">
+                            <option value="">Все</option>
+                            <option value="активна" ${filters.status === 'активна' ? 'selected' : ''}>Активна</option>
+                            <option value="просрочена" ${filters.status === 'просрочена' ? 'selected' : ''}>Просрочена</option>
+                            <option value="soon" ${filters.status === 'soon' ? 'selected' : ''}>Скоро возврат</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" data-perPage="activeRentals">
+                            <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
+                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
+                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25</option>
+                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-danger btn-sm" data-action="massCloseRentals" data-tooltip="Закрыть выбранные аренды">Закрыть выбранные</button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive"><table class="table table-striped table-hover">
+                <thead><tr>
+                    <th><input type="checkbox" id="selectAllActive" onchange="window._toggleAllActive(this.checked)"></th>
+                    <th data-sort="activeRentals.rental_number" style="cursor:pointer;">№ <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="activeRentals.client_id" style="cursor:pointer;">Клиент <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="activeRentals.tool_id" style="cursor:pointer;">Инструмент <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="activeRentals.price_per_day" style="cursor:pointer;">Цена/сутки <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="activeRentals.issue_date" style="cursor:pointer;">Выдача <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="activeRentals.planned_return" style="cursor:pointer;">План возврат <i class="bi bi-arrow-up"></i></th>
+                    <th>Дней</th>
+                    <th data-sort="activeRentals.total_cost" style="cursor:pointer;">Сумма <i class="bi bi-arrow-up"></i></th>
+                    <th>Комментарий</th>
+                    <th>Статус</th>
+                </tr></thead>
+                <tbody>
+                ${items.length === 0 ? '<tr><td colspan="11" class="text-center text-muted">Нет активных аренд</td></tr>' :
+                    items.map(r => {
+                        const c = getClientById(r.client_id);
+                        const t = getToolById(r.tool_id);
+                        const days = daysBetween(r.issue_date, r.planned_return);
+                        const isOverdue = new Date(r.planned_return) < today;
+                        const statusDisplay = isOverdue ? 'просрочена' : r.status;
+                        return `<tr>
+                            <td><input type="checkbox" class="rental-checkbox" data-id="${r.id}"></td>
+                            <td>${r.rental_number || '—'}</td>
+                            <td>${c ? c.name : 'Удалён'}</td>
+                            <td>${t ? t.model : 'Удалён'}</td>
+                            <td>${r.price_per_day || 0} ₽</td>
+                            <td>${formatDate(r.issue_date)}</td>
+                            <td>${formatDate(r.planned_return)}</td>
+                            <td>${days}</td>
+                            <td>${r.total_cost || 0} ₽</td>
+                            <td>${r.comment || '—'}</td>
+                            <td><span class="badge bg-${getStatusColor(statusDisplay)} rental-badge">${statusDisplay}</span></td>
+                        </tr>`;
+                    }).join('')
+                }
+                </tbody></table></div>
+            ${totalPages > 1 ? `
+            <nav><ul class="pagination">
+                <li class="page-item ${page === 1 ? 'disabled' : ''}"><button class="page-link" data-action="pageActiveRentals" data-param="${page-1}">Назад</button></li>
+                ${Array.from({length: totalPages}, (_, i) => i+1).map(p => `
+                    <li class="page-item ${p === page ? 'active' : ''}"><button class="page-link" data-action="pageActiveRentals" data-param="${p}">${p}</button></li>
+                `).join('')}
+                <li class="page-item ${page === totalPages ? 'disabled' : ''}"><button class="page-link" data-action="pageActiveRentals" data-param="${page+1}">Вперёд</button></li>
+            </ul></nav>
+            ` : ''}
+            <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
+            render(container, html);
+        }
+
+        window.pageActiveRentals = function(page) { state.pagination.activeRentals.page = parseInt(page); renderCurrentPage(); };
+        window._toggleAllActive = function(checked) {
+            document.querySelectorAll('.rental-checkbox').forEach(cb => cb.checked = checked);
+        };
+        window.massCloseRentals = async function() {
+            const selected = document.querySelectorAll('.rental-checkbox:checked');
+            if (selected.length === 0) { showToast('Выберите аренды', 'warning'); return; }
+            if (!confirm(`Закрыть ${selected.length} аренд?`)) return;
+            showSpinner();
+            const ids = Array.from(selected).map(cb => cb.dataset.id);
+            const today = todayStr();
+            for (const id of ids) {
+                const rental = rentals.find(r => r.id === id);
+                if (!rental || rental.status !== 'активна') continue;
+                await supabase.from('rentals').update({
+                    actual_return: today,
+                    status: 'закрыта',
+                    return_condition: 'Закрыта массово'
+                }).eq('id', id);
+                await supabase.from('tools').update({ status: 'в наличии' }).eq('id', rental.tool_id);
+            }
+            await refreshAllData();
+            hideSpinner();
+            showToast(`Закрыто ${ids.length} аренд`, 'success');
+            navigate('activeRentals');
+        };
+
+        // ---------- БРОНИ ----------
+        function renderBookings(container) {
+            const filters = state.filters.bookings;
+            let filtered = rentals.filter(r => r.status === 'забронирована');
+            if (filters.search) {
+                const s = filters.search.toLowerCase();
+                filtered = filtered.filter(r => {
+                    const c = getClientById(r.client_id);
+                    const t = getToolById(r.tool_id);
+                    return (c?.name?.toLowerCase().includes(s) || t?.model?.toLowerCase().includes(s) || r.rental_number?.toLowerCase().includes(s));
+                });
+            }
+            const pagResult = applyPaginationAndSort(filtered, 'bookings');
+            const { items, total, page, perPage, totalPages } = pagResult;
+
+            let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1><i class="bi bi-calendar-check me-2"></i>Брони</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <p class="text-muted">Всего броней: ${rentals.filter(r => r.status === 'забронирована').length}</p>
+            <div class="filter-section">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" placeholder="Поиск по клиенту, инструменту или №" data-filter="bookings.search" value="${filters.search}">
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" data-perPage="bookings">
+                            <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
+                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
+                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25</option>
+                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive"><table class="table table-striped table-hover">
+                <thead><tr>
+                    <th data-sort="bookings.rental_number" style="cursor:pointer;">№ <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="bookings.client_id" style="cursor:pointer;">Клиент <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="bookings.tool_id" style="cursor:pointer;">Инструмент <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="bookings.issue_date" style="cursor:pointer;">Выдача (с) <i class="bi bi-arrow-up"></i></th>
+                    <th data-sort="bookings.planned_return" style="cursor:pointer;">План возврат <i class="bi bi-arrow-up"></i></th>
+                    <th>Дней</th>
+                    <th data-sort="bookings.total_cost" style="cursor:pointer;">Сумма <i class="bi bi-arrow-up"></i></th>
+                    <th>Действия</th>
+                </tr></thead>
+                <tbody>
+                ${items.length === 0 ? '<tr><td colspan="8" class="text-center text-muted">Нет броней</td></tr>' :
+                    items.map(r => {
+                        const c = getClientById(r.client_id);
+                        const t = getToolById(r.tool_id);
+                        const days = daysBetween(r.issue_date, r.planned_return);
+                        return `<tr>
+                            <td>${r.rental_number || '—'}</td>
+                            <td>${c ? c.name : 'Удалён'}</td>
+                            <td>${t ? t.model : 'Удалён'}</td>
+                            <td>${formatDate(r.issue_date)}</td>
+                            <td>${formatDate(r.planned_return)}</td>
+                            <td>${days}</td>
+                            <td>${r.total_cost || 0} ₽</td>
+                            <td>
+                                <button class="btn btn-sm btn-success" data-action="bookingToRental" data-param="${r.id}" data-tooltip="Перевести в аренду">➡️ В аренду</button>
+                                <button class="btn btn-sm btn-danger" data-action="cancelBooking" data-param="${r.id}" data-tooltip="Отменить бронь">✕ Отменить</button>
+                            </td>
+                        </tr>`;
+                    }).join('')
+                }
+                </tbody></table></div>
+            ${totalPages > 1 ? `
+            <nav><ul class="pagination">
+                <li class="page-item ${page === 1 ? 'disabled' : ''}"><button class="page-link" data-action="pageBookings" data-param="${page-1}">Назад</button></li>
+                ${Array.from({length: totalPages}, (_, i) => i+1).map(p => `
+                    <li class="page-item ${p === page ? 'active' : ''}"><button class="page-link" data-action="pageBookings" data-param="${p}">${p}</button></li>
+                `).join('')}
+                <li class="page-item ${page === totalPages ? 'disabled' : ''}"><button class="page-link" data-action="pageBookings" data-param="${page+1}">Вперёд</button></li>
+            </ul></nav>
+            ` : ''}
+            <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
+            render(container, html);
+        }
+
+        window.pageBookings = function(page) { state.pagination.bookings.page = parseInt(page); renderCurrentPage(); };
+        window.bookingToRental = async function(rentalId) {
+            if (!confirm('Перевести бронь в активную аренду?')) return;
+            const rental = rentals.find(r => r.id === rentalId);
+            if (!rental || rental.status !== 'забронирована') { showToast('Это не бронь', 'danger'); return; }
+            showSpinner();
+            const { error: rentalError } = await supabase.from('rentals').update({ status: 'активна' }).eq('id', rentalId);
+            if (rentalError) { showToast('Ошибка: ' + rentalError.message, 'danger'); hideSpinner(); return; }
+            const tool = getToolById(rental.tool_id);
+            if (tool) {
+                await supabase.from('tools').update({ status: 'в аренде', reserved_until: null }).eq('id', tool.id);
+            }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Бронь переведена в аренду', 'success');
+            navigate('bookings');
+        };
+        window.cancelBooking = async function(rentalId) {
+            if (!confirm('Отменить бронь?')) return;
+            const rental = rentals.find(r => r.id === rentalId);
+            if (!rental || rental.status !== 'забронирована') { showToast('Это не бронь', 'danger'); return; }
+            showSpinner();
+            await supabase.from('rentals').delete().eq('id', rentalId);
+            const tool = getToolById(rental.tool_id);
+            if (tool) {
+                await supabase.from('tools').update({ status: 'в наличии', reserved_until: null }).eq('id', tool.id);
+            }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Бронь отменена', 'success');
+            navigate('bookings');
+        };
+
+        // ---------- ВОЗВРАТ ----------
+        function renderReturnRental(container) {
+            const active = rentals.filter(r => r.status === 'активна');
+            let opts = active.map(r => {
+                const c = getClientById(r.client_id);
+                const t = getToolById(r.tool_id);
+                return `<option value="${r.id}">${r.rental_number} — ${t ? t.model : 'Удалён'} (${c ? c.name : 'Удалён'})</option>`;
+            }).join('');
+            const today = todayStr();
+
+            let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1><i class="bi bi-arrow-return-left me-2"></i>Возврат инструмента</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            ${active.length === 0 ? '<div class="alert alert-info">Нет активных аренд.</div>' : `
+            <form onsubmit="return false;">
+                <div class="mb-3">
+                    <label>Активная аренда</label>
+                    <select id="retRental" class="form-select" required>
+                        <option value="">— Выберите —</option>
+                        ${opts}
+                    </select>
+                </div>
+                <div class="mb-3"><label>Фактическая дата возврата</label><input id="retDate" type="date" class="form-control" value="${today}" required /></div>
+                <div class="mb-3">
+                    <label>Состояние инструмента</label>
+                    <select id="retCondition" class="form-select">
+                        <option value="Отличное">Отличное</option>
+                        <option value="Хорошее" selected>Хорошее</option>
+                        <option value="Требует ремонта">Требует ремонта</option>
+                        <option value="Неисправен">Неисправен</option>
+                    </select>
+                </div>
+                <div class="mb-3 form-check">
+                    <input class="form-check-input" type="checkbox" id="retDepositReturned">
+                    <label class="form-check-label" for="retDepositReturned">Залог возвращён</label>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-success" onclick="window._returnRental(false)" data-tooltip="Принять возврат">Принять возврат</button>
+                    <button type="button" class="btn btn-warning" onclick="window._returnRental(true)" data-tooltip="Отправить на ТО">Отправить на ТО</button>
+                </div>
+            </form>`}
+            <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
+            render(container, html);
+        }
+
+        window._returnRental = async function(sendToRepair) {
+            const rentalId = document.getElementById('retRental').value;
+            const actualReturn = document.getElementById('retDate').value;
+            const condition = document.getElementById('retCondition') ? document.getElementById('retCondition').value : 'Хорошее';
+            const depositReturned = document.getElementById('retDepositReturned').checked;
+            if (!rentalId) { showToast('Выберите аренду', 'danger'); return; }
+            const rental = rentals.find(r => r.id === rentalId);
+            if (!rental) return;
+            const planned = new Date(rental.planned_return);
+            const actual = new Date(actualReturn);
+            let totalCost = rental.total_cost;
+            if (actual > planned) {
+                const extraDays = Math.ceil((actual - planned) / (1000 * 60 * 60 * 24));
+                totalCost += extraDays * rental.price_per_day;
+            }
+            showSpinner();
+            await supabase.from('rentals').update({
+                actual_return: actualReturn,
+                status: 'закрыта',
+                return_condition: condition,
+                total_cost: totalCost,
+                deposit_returned: depositReturned
+            }).eq('id', rentalId);
+            const toolId = rental.tool_id;
+            const toolUpdate = sendToRepair
+                ? { status: 'на обслуживании', repair_reason: condition, repair_date: actualReturn }
+                : { status: 'в наличии', repair_reason: '', repair_date: null };
+            await supabase.from('tools').update(toolUpdate).eq('id', toolId);
+            await refreshAllData();
+            hideSpinner();
+            showToast('Инструмент возвращён', 'success');
+            navigate('dashboard');
+        };
+
+        // ---------- ТО ----------
+        function renderRepair(container) {
+            const repairTools = tools.filter(t => t.status === 'на обслуживании');
+            let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1><i class="bi bi-wrench me-2"></i>Инструменты на ТО</h1>
+                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            ${repairTools.length === 0 ? '<div class="alert alert-info">Нет инструментов на ТО.</div>' : `
+            <div class="table-responsive"><table class="table table-hover">
+                <thead><tr><th>Инв. №</th><th>Модель</th><th>Причина</th><th>Дата отправки</th><th>Действие</th></tr></thead>
+                <tbody>
+                ${repairTools.map(t => `
+                    <tr>
+                        <td>${t.inventory_number || '—'}</td>
+                        <td>${t.model || '—'}</td>
+                        <td>${t.repair_reason || '—'}</td>
+                        <td>${formatDate(t.repair_date)}</td>
+                        <td><button class="btn btn-sm btn-success" data-action="returnFromRepair" data-param="${t.id}" data-tooltip="Вернуть с ТО в наличие">Вернуть с ТО</button></td>
+                    </tr>
+                `).join('')}
+                </tbody></table></div>`}
+            `;
+            render(container, html);
+        }
+
+        window.returnFromRepair = async function(toolId) {
+            if (!confirm('Вернуть инструмент с ТО в наличие?')) return;
+            showSpinner();
+            await supabase.from('tools').update({
+                status: 'в наличии',
+                repair_reason: '',
+                repair_date: null
+            }).eq('id', toolId);
+            await refreshAllData();
+            hideSpinner();
+            showToast('Инструмент возвращён с ТО', 'success');
+            navigate('repair');
+        };
+
+        // ---------- ИСТОРИЯ ----------
         function renderHistory(container) {
             const filters = state.filters.history;
             let filtered = rentals;
@@ -918,7 +1535,6 @@
             if (filters.filter === 'active') filtered = filtered.filter(r => r.status === 'активна');
             else if (filters.filter === 'closed') filtered = filtered.filter(r => r.status === 'закрыта');
             else if (filters.filter === 'booked') filtered = filtered.filter(r => r.status === 'забронирована');
-
             if (filters.dateFrom) filtered = filtered.filter(r => r.issue_date >= filters.dateFrom);
             if (filters.dateTo) filtered = filtered.filter(r => r.planned_return <= filters.dateTo);
 
@@ -1016,335 +1632,130 @@
         }
 
         window.pageHistory = function(page) { state.pagination.history.page = parseInt(page); renderCurrentPage(); };
-        window.exportCSV = function() { window._exportCSV(); };
-        window.deleteRental = function(id) { window._deleteRental(id); };
-
-        // ----- ТЁМНАЯ ТЕМА (переключатель) -----
-        function toggleDarkMode() {
-            state.darkMode = !state.darkMode;
-            document.body.style.backgroundColor = state.darkMode ? '#1a1a2e' : '#f4f6fa';
-            document.body.style.color = state.darkMode ? '#e0e0e0' : '#212529';
-            const cards = document.querySelectorAll('.card, .filter-section, .chart-container, .login-container');
-            cards.forEach(c => {
-                c.style.backgroundColor = state.darkMode ? '#2d2d44' : '';
-                c.style.color = state.darkMode ? '#e0e0e0' : '';
+        window.exportCSV = function() {
+            if (rentals.length === 0) { showToast('Нет данных для экспорта', 'warning'); return; }
+            let csv = '№,Клиент,Инструмент,Выдача,План возврат,Факт возврат,Цена/сутки,Сумма,Залог,Залог возвращён,Состояние,Комментарий,Статус\n';
+            rentals.forEach(r => {
+                const c = getClientById(r.client_id);
+                const t = getToolById(r.tool_id);
+                csv += `"${r.rental_number || ''}","${c ? c.name : ''}","${t ? t.model : ''}",`;
+                csv += `"${formatDate(r.issue_date)}","${formatDate(r.planned_return)}","${formatDate(r.actual_return)}",`;
+                csv += `"${r.price_per_day || 0}","${r.total_cost || 0}","${r.deposit || 0}","${r.deposit_returned ? 'Да' : 'Нет'}",`;
+                csv += `"${r.return_condition || ''}","${r.comment || ''}","${r.status || ''}"\n`;
             });
-            // Сохраняем настройку
-            localStorage.setItem('darkMode', state.darkMode);
-        }
-        // Восстановление темы при загрузке
-        if (localStorage.getItem('darkMode') === 'true') {
-            state.darkMode = true;
-            document.body.style.backgroundColor = '#1a1a2e';
-            document.body.style.color = '#e0e0e0';
-        }
-
-        // ----- ПЕРЕОПРЕДЕЛЕНИЕ NAVIGATE ДЛЯ МЕНЮ -----
-        // Мы уже используем свою функцию navigate, поэтому обработчик меню надо переназначить
-        // Удаляем старый обработчик и вешаем новый
-        document.querySelector('#navList').addEventListener('click', function(e) {
-            const link = e.target.closest('.nav-link');
-            if (!link) return;
-            const page = link.dataset.page;
-            if (page) navigate(page);
-        });
-
-        // ----- ПЕРЕОПРЕДЕЛЕНИЕ ГОТОВЫХ ФУНКЦИЙ ДЛЯ НОВОЙ НАВИГАЦИИ -----
-        // Чтобы старые вызовы (например, из меню) работали, переназначаем window.navigate
-        window.navigate = navigate;
-        window.goBack = goBack;
-        window.toggleDarkMode = toggleDarkMode;
-        // Также переопределяем _showClientHistory для использования новой логики (уже сделано выше)
-
-        // Запускаем рендеринг текущей страницы
-        renderCurrentPage();
-        // ===== ЗАПУСК =====
-        checkSession();
-        // ===== ВТОРАЯ ЧАСТЬ: АУДИТ, УЛУЧШЕННАЯ АНАЛИТИКА, РЕДАКТИРОВАНИЕ АРЕНДЫ =====
-
-        // ---------- 1. АУДИТ (логирование действий) ----------
-        async function logAction(action, details = {}) {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                const userId = user ? user.id : 'anonymous';
-                const logEntry = {
-                    id: genId(),
-                    user_id: userId,
-                    user_email: user ? user.email : 'anonymous',
-                    action: action,
-                    details: details,
-                    created_at: new Date().toISOString()
-                };
-                // Вставляем в таблицу audit_log (если она существует)
-                const { error } = await supabase.from('audit_log').insert(logEntry);
-                if (error) console.warn('Audit log error:', error);
-            } catch (e) { console.warn('Audit log error:', e); }
-        }
-
-        // Переопределяем ключевые функции для логирования (без нарушения работы)
-        const originalSaveTool = window._saveTool;
-        window._saveTool = async function(e) {
-            await originalSaveTool(e);
-            await logAction('save_tool', { id: document.getElementById('fEditId').value || 'new' });
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `аренды_${todayStr()}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            showToast('CSV скачан', 'success');
         };
-
-        const originalDeleteTool = window._deleteTool;
-        window._deleteTool = async function(id) {
-            await originalDeleteTool(id);
-            await logAction('delete_tool', { tool_id: id });
-        };
-
-        const originalSaveClient = window._saveClient;
-        window._saveClient = async function(e) {
-            await originalSaveClient(e);
-            await logAction('save_client', { id: document.getElementById('fEditClientId').value || 'new' });
-        };
-
-        const originalDeleteClient = window._deleteClient;
-        window._deleteClient = async function(id) {
-            await originalDeleteClient(id);
-            await logAction('delete_client', { client_id: id });
-        };
-
-        const originalSaveRental = window._saveRental;
-        window._saveRental = async function(e) {
-            await originalSaveRental(e);
-            await logAction('create_rental', { client_id: document.getElementById('rClient').value, tool_id: document.getElementById('rTool').value });
-        };
-
-        const originalReturnRental = window._returnRental;
-        window._returnRental = async function(sendToRepair) {
-            const rentalId = document.getElementById('retRental').value;
-            await originalReturnRental(sendToRepair);
-            await logAction('return_rental', { rental_id: rentalId, send_to_repair: sendToRepair });
-        };
-
-        const originalBookingToRental = window._bookingToRental;
-        window._bookingToRental = async function(rentalId) {
-            await originalBookingToRental(rentalId);
-            await logAction('booking_to_rental', { rental_id: rentalId });
-        };
-
-        const originalCancelBooking = window._cancelBooking;
-        window._cancelBooking = async function(rentalId) {
-            await originalCancelBooking(rentalId);
-            await logAction('cancel_booking', { rental_id: rentalId });
-        };
-
-        const originalMassCloseRentals = window._massCloseRentals;
-        window._massCloseRentals = async function() {
-            const selected = document.querySelectorAll('.rental-checkbox:checked');
-            const ids = Array.from(selected).map(cb => cb.dataset.id);
-            await originalMassCloseRentals();
-            await logAction('mass_close_rentals', { count: ids.length, ids: ids });
-        };
-
-        // ---------- 2. УЛУЧШЕННАЯ АНАЛИТИКА ----------
-        // Добавляем блок "Топ клиентов" и "Динамика" на дашборд
-        function renderTopClients() {
-            const clientStats = {};
-            rentals.filter(r => r.status === 'закрыта').forEach(r => {
-                const client = getClientById(r.client_id);
-                if (!client) return;
-                if (!clientStats[client.id]) {
-                    clientStats[client.id] = { name: client.name, total: 0, count: 0 };
-                }
-                clientStats[client.id].total += r.total_cost || 0;
-                clientStats[client.id].count += 1;
-            });
-            const sorted = Object.values(clientStats).sort((a, b) => b.total - a.total).slice(0, 5);
-            if (sorted.length === 0) return '<p class="text-muted">Нет данных по клиентам</p>';
-            let html = '<div class="mt-4"><h5>🏆 Топ клиенты по выручке</h5><ul class="list-group">';
-            sorted.forEach((c, i) => {
-                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${i+1}. ${c.name} <span class="badge bg-primary rounded-pill">${c.total} ₽ (${c.count} аренд)</span>
-                </li>`;
-            });
-            html += '</ul></div>';
-            return html;
-        }
-
-        function renderRevenueDynamics() {
-            // Динамика по месяцам (последние 6 месяцев)
-            const months = [];
-            const now = new Date();
-            for (let i = 5; i >= 0; i--) {
-                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                const monthStr = d.toISOString().slice(0, 7); // YYYY-MM
-                const revenue = rentals
-                    .filter(r => r.status === 'закрыта' && r.actual_return && r.actual_return.startsWith(monthStr))
-                    .reduce((sum, r) => sum + (r.total_cost || 0), 0);
-                months.push({ month: monthStr, revenue });
-            }
-            if (months.every(m => m.revenue === 0)) return '<p class="text-muted">Нет данных за последние 6 месяцев</p>';
-            let html = '<div class="mt-4"><h5>📈 Динамика выручки по месяцам</h5><ul class="list-group">';
-            months.forEach(m => {
-                const label = new Date(m.month + '-01').toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${label} <span class="badge bg-success rounded-pill">${m.revenue} ₽</span>
-                </li>`;
-            });
-            html += '</ul></div>';
-            return html;
-        }
-
-        // Встраиваем блоки на дашборд (после графика)
-        const originalRenderDashboard = renderDashboard;
-        renderDashboard = function(container) {
-            originalRenderDashboard(container);
-            // После рендера добавляем блоки аналитики
-            const chartContainer = container.querySelector('.chart-container');
-            if (chartContainer) {
-                const wrapper = document.createElement('div');
-                wrapper.innerHTML = renderTopClients() + renderRevenueDynamics();
-                chartContainer.parentNode.insertBefore(wrapper.firstElementChild, chartContainer.nextSibling);
-                // Если внутри несколько элементов, вставляем по очереди
-                const children = wrapper.children;
-                while (children.length) {
-                    chartContainer.parentNode.insertBefore(children[0], chartContainer.nextSibling);
-                }
-            }
-        };
-
-        // ---------- 3. РЕДАКТИРОВАНИЕ АРЕНДЫ ----------
-        // Добавляем кнопку редактирования в активные аренды и брони
-        window._editRental = function(rentalId) {
+        window.deleteRental = async function(rentalId) {
+            if (!confirm('Удалить эту запись?')) return;
             const rental = rentals.find(r => r.id === rentalId);
-            if (!rental) { showToast('Аренда не найдена', 'danger'); return; }
-            if (rental.status !== 'активна' && rental.status !== 'забронирована') {
-                showToast('Редактировать можно только активные аренды или брони', 'warning');
+            if (!rental) return;
+            if (rental.status === 'активна' || rental.status === 'забронирована') {
+                showToast('Нельзя удалить активную аренду или бронь', 'danger');
                 return;
             }
-            const container = document.getElementById('appContent');
-            const clientsOpts = clients.map(c => `<option value="${c.id}" ${c.id === rental.client_id ? 'selected' : ''}>${c.name} (${c.phone})</option>`).join('');
-            const toolsOpts = tools.map(t => `<option value="${t.id}" ${t.id === rental.tool_id ? 'selected' : ''}>${t.model} (${t.inventory_number})</option>`).join('');
-            render(container, `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1>Редактировать аренду ${rental.rental_number}</h1>
-                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
-            </div>
-            <form onsubmit="window._saveRentalEdit(event, '${rentalId}')">
-                <div class="mb-3">
-                    <label>Клиент</label>
-                    <select id="editClient" class="form-select" required>${clientsOpts}</select>
-                </div>
-                <div class="mb-3">
-                    <label>Инструмент</label>
-                    <select id="editTool" class="form-select" required>${toolsOpts}</select>
-                </div>
-                <div class="mb-3"><label>Дата выдачи</label><input id="editDate" type="date" class="form-control" value="${rental.issue_date}" required /></div>
-                <div class="mb-3"><label>План возврата</label><input id="editReturn" type="date" class="form-control" value="${rental.planned_return}" required /></div>
-                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="editPrice" type="number" step="0.01" class="form-control" value="${rental.price_per_day}" required /></div>
-                <div class="mb-3"><label>Комментарий</label><textarea id="editComment" class="form-control" rows="2">${rental.comment || ''}</textarea></div>
-                <button type="submit" class="btn btn-success">Сохранить изменения</button>
-                <button type="button" class="btn btn-secondary" onclick="navigate('activeRentals')">Отмена</button>
-            </form>
-            `);
-        };
-
-        window._saveRentalEdit = async function(e, rentalId) {
-            e.preventDefault();
-            const clientId = document.getElementById('editClient').value;
-            const toolId = document.getElementById('editTool').value;
-            const issueDate = document.getElementById('editDate').value;
-            const plannedReturn = document.getElementById('editReturn').value;
-            const pricePerDay = parseFloat(document.getElementById('editPrice').value) || 0;
-            const comment = document.getElementById('editComment').value.trim();
-
             showSpinner();
-            const { error } = await supabase.from('rentals').update({
-                client_id: clientId,
-                tool_id: toolId,
-                issue_date: issueDate,
-                planned_return: plannedReturn,
-                price_per_day: pricePerDay,
-                comment: comment
-            }).eq('id', rentalId);
-            if (error) { showToast('Ошибка обновления: ' + error.message, 'danger'); hideSpinner(); return; }
+            await supabase.from('rentals').delete().eq('id', rentalId);
             await refreshAllData();
             hideSpinner();
-            showToast('Аренда обновлена', 'success');
-            await logAction('edit_rental', { rental_id: rentalId });
-            navigate('activeRentals');
+            showToast('Запись удалена', 'success');
+            navigate('history');
         };
 
-        // Добавляем кнопки редактирования в таблицы активных аренд и броней
-        // Переопределяем renderActiveRentals и renderBookings, чтобы добавить кнопку "Редактировать"
-        const originalRenderActiveRentals = renderActiveRentals;
-        renderActiveRentals = function(container) {
-            originalRenderActiveRentals(container);
-            // После рендера добавляем кнопку редактирования в каждую строку
-            setTimeout(() => {
-                const rows = container.querySelectorAll('.rental-checkbox');
-                rows.forEach(cb => {
-                    const row = cb.closest('tr');
-                    if (row) {
-                        const lastTd = row.querySelector('td:last-child');
-                        if (lastTd) {
-                            const editBtn = document.createElement('button');
-                            editBtn.className = 'btn btn-sm btn-outline-primary ms-1';
-                            editBtn.innerHTML = '✎';
-                            editBtn.setAttribute('data-tooltip', 'Редактировать аренду');
-                            editBtn.onclick = () => window._editRental(cb.dataset.id);
-                            lastTd.appendChild(editBtn);
-                        }
-                    }
-                });
-            }, 50);
-        };
-
-        const originalRenderBookings = renderBookings;
-        renderBookings = function(container) {
-            originalRenderBookings(container);
-            setTimeout(() => {
-                const rows = container.querySelectorAll('table tbody tr');
-                rows.forEach(row => {
-                    const lastTd = row.querySelector('td:last-child');
-                    if (lastTd) {
-                        const editBtn = document.createElement('button');
-                        editBtn.className = 'btn btn-sm btn-outline-primary ms-1';
-                        editBtn.innerHTML = '✎';
-                        editBtn.setAttribute('data-tooltip', 'Редактировать бронь');
-                        const rentalId = row.querySelector('td:first-child')?.textContent?.trim(); // может быть номер, но лучше использовать data-id
-                        // Ищем data-id через чекбокс? В бронях чекбоксов нет, поэтому найдём по номеру аренды
-                        const rentalNumber = row.querySelector('td:first-child')?.textContent?.trim();
-                        const rental = rentals.find(r => r.rental_number === rentalNumber);
-                        if (rental) {
-                            editBtn.onclick = () => window._editRental(rental.id);
-                            lastTd.appendChild(editBtn);
-                        }
-                    }
-                });
-            }, 50);
-        };
-
-        // ---------- 4. УЛУЧШЕННЫЕ УВЕДОМЛЕНИЯ С АНИМАЦИЕЙ ----------
-        // Переопределяем showToast для добавления анимации (уже есть)
-        // Дополнительно можно добавить звук или иконки, но пока оставим как есть.
-
-        // ---------- 5. ДОПОЛНИТЕЛЬНАЯ МЕТРИКА НА ДАШБОРД ----------
-        // Добавляем карточку "Средняя выручка на аренду"
-        const originalRenderDashboardMetrics = renderDashboard;
-        renderDashboard = function(container) {
-            originalRenderDashboardMetrics(container);
-            // После рендера добавим ещё одну карточку в ряд метрик
-            const row = container.querySelector('.row.mt-4.g-3');
-            if (row) {
-                const totalClosed = rentals.filter(r => r.status === 'закрыта').length;
-                const totalRevenue = rentals.filter(r => r.status === 'закрыта').reduce((sum, r) => sum + (r.total_cost || 0), 0);
-                const avg = totalClosed > 0 ? Math.round(totalRevenue / totalClosed) : 0;
-                const card = document.createElement('div');
-                card.className = 'col-md-4';
-                card.innerHTML = `
-                    <div class="card card-dashboard"><div class="card-body">
-                        <h5>Средняя выручка на аренду</h5>
-                        <h3>${avg} ₽</h3>
-                        <small class="text-muted">закрытых аренд: ${totalClosed}</small>
-                    </div></div>
-                `;
-                row.appendChild(card);
+        // ============================================================
+        // АВТОРИЗАЦИЯ
+        // ============================================================
+        window.login = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            showSpinner();
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) { showToast('Ошибка входа: ' + error.message, 'danger'); hideSpinner(); return; }
+            if (data.user) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('mainNav').style.display = 'flex';
+                await refreshAllData();
+                hideSpinner();
+                navigate('dashboard');
             }
         };
+
+        window.register = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            showSpinner();
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) { showToast('Ошибка регистрации: ' + error.message, 'danger'); hideSpinner(); return; }
+            hideSpinner();
+            showToast('Регистрация успешна! Теперь войдите.', 'success');
+            showLogin();
+        };
+
+        window.logout = async function() {
+            await supabase.auth.signOut();
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('registerPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('mainNav').style.display = 'none';
+            tools = []; clients = []; rentals = [];
+            showToast('Вы вышли', 'warning');
+        };
+
+        window.showRegister = function() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('registerPage').classList.remove('hidden');
+        };
+        window.showLogin = function() {
+            document.getElementById('registerPage').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+        };
+
+        // ============================================================
+        // ТЁМНАЯ ТЕМА
+        // ============================================================
+        function toggleDarkMode() {
+            state.darkMode = !state.darkMode;
+            document.body.classList.toggle('dark-mode', state.darkMode);
+            localStorage.setItem('darkMode', state.darkMode);
+        }
+        if (localStorage.getItem('darkMode') === 'true') {
+            state.darkMode = true;
+            document.body.classList.add('dark-mode');
+        }
+        window.toggleDarkMode = toggleDarkMode;
+
+        // ============================================================
+        // ИНИЦИАЛИЗАЦИЯ
+        // ============================================================
+        async function checkSession() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('mainNav').style.display = 'flex';
+                await refreshAllData();
+                renderCurrentPage();
+            } else {
+                document.getElementById('loginPage').classList.remove('hidden');
+                document.getElementById('registerPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('mainNav').style.display = 'none';
+            }
+        }
+
+        checkSession();
     })();
 </script>
 </body>
