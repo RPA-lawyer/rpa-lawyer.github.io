@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>СК Квадрант — Учёт аренды</title>
+    <title>СК Квадрант</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', sans-serif; }
-        body { padding-top: 70px; background: #f4f6fa; transition: background 0.3s, color 0.3s; }
+        body { padding-top: 70px; background: #f4f6fa; transition: 0.3s; }
         .navbar-brand { font-weight: 800; letter-spacing: -0.5px; color: #fff !important; }
         .brand-highlight { color: #ffc107; }
         .card-dashboard {
@@ -23,19 +23,17 @@
         .card-dashboard .card-body { padding: 1.5rem; }
         .card-dashboard h5 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
         .card-dashboard h2, .card-dashboard h3 { font-weight: 700; }
-
         .filter-section {
             background: #fff;
             padding: 12px 20px;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             margin-bottom: 20px;
-            transition: background 0.3s;
+            transition: 0.3s;
         }
         .table th { font-weight: 600; color: #2c3e50; border-top: none; }
         .table td { vertical-align: middle; }
         .rental-badge { font-size: 0.7rem; padding: 0.35rem 0.65rem; border-radius: 20px; }
-        .btn-edit { margin-right: 4px; }
         .login-container {
             max-width: 420px;
             margin: 60px auto;
@@ -47,13 +45,11 @@
         .login-container h2 { font-weight: 700; color: #1a1a2e; }
         .login-container .brand-icon { font-size: 2.5rem; color: #0d6efd; }
         .hidden { display: none; }
-
         .chart-container {
             background: #fff;
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            transition: background 0.3s;
         }
         .chart-bar {
             display: flex;
@@ -94,7 +90,6 @@
             color: #6c757d;
             font-weight: 500;
         }
-
         .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
         .toast-custom {
             background: #1a1a2e;
@@ -116,7 +111,6 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .spinner-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -128,13 +122,11 @@
             z-index: 9998;
         }
         .spinner-overlay .spinner-border { width: 3rem; height: 3rem; }
-
         @media (max-width: 576px) {
             .card-dashboard .card-body { padding: 1rem; }
             .login-container { margin: 30px 15px; padding: 30px 20px; }
             .table-responsive { font-size: 0.85rem; }
         }
-
         [data-tooltip] { position: relative; }
         [data-tooltip]:hover::after {
             content: attr(data-tooltip);
@@ -154,7 +146,6 @@
         .fade-enter { opacity: 0; transform: translateY(10px); }
         .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.3s ease; }
 
-        /* Тёмная тема */
         body.dark-mode {
             background: #1a1a2e;
             color: #e0e0e0;
@@ -215,15 +206,15 @@
         </button>
         <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav me-auto" id="navList">
-                <li class="nav-item"><a class="nav-link active" href="#" data-page="dashboard"><i class="bi bi-speedometer2 me-1"></i>Дашборд</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-page="tools"><i class="bi bi-hammer me-1"></i>Инструменты</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-page="clients"><i class="bi bi-people me-1"></i>Клиенты</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-page="newRental"><i class="bi bi-plus-circle me-1"></i>Выдать</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-page="activeRentals"><i class="bi bi-play-circle me-1"></i>Активные</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-page="bookings"><i class="bi bi-calendar-check me-1"></i>Брони</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-page="returnRental"><i class="bi bi-arrow-return-left me-1"></i>Вернуть</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-page="repair"><i class="bi bi-wrench me-1"></i>ТО</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" data-page="history"><i class="bi bi-clock-history me-1"></i>История</a></li>
+                <li class="nav-item"><a class="nav-link active" href="#" onclick="navigate('dashboard')"><i class="bi bi-speedometer2 me-1"></i>Дашборд</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="navigate('tools')"><i class="bi bi-hammer me-1"></i>Инструменты</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="navigate('clients')"><i class="bi bi-people me-1"></i>Клиенты</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="navigate('newRental')"><i class="bi bi-plus-circle me-1"></i>Выдать</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="navigate('activeRentals')"><i class="bi bi-play-circle me-1"></i>Активные</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="navigate('bookings')"><i class="bi bi-calendar-check me-1"></i>Брони</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="navigate('returnRental')"><i class="bi bi-arrow-return-left me-1"></i>Вернуть</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="navigate('repair')"><i class="bi bi-wrench me-1"></i>ТО</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="navigate('history')"><i class="bi bi-clock-history me-1"></i>История</a></li>
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item"><a class="nav-link" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Выйти</a></li>
@@ -286,10 +277,12 @@
     (function() {
         'use strict';
 
+        // ----- SUPABASE -----
         const SUPABASE_URL = 'https://jptbqcbpllffgufusibj.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_gHL-E4wUy2KbNnwcnxj-Cw_pY5eaxth';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // ----- Вспомогательные -----
         function genId() { return Date.now().toString(36) + Math.random().toString(36).substring(2, 8); }
         function todayStr() { return new Date().toISOString().split('T')[0]; }
         function formatDate(dateStr) { if (!dateStr) return '—'; return new Date(dateStr).toLocaleDateString('ru-RU'); }
@@ -340,76 +333,25 @@
             setTimeout(() => { toast.remove(); }, 4000);
         }
 
-        // ============================================================
-        // ГЛОБАЛЬНОЕ СОСТОЯНИЕ
-        // ============================================================
-        const state = {
-            currentPage: 'dashboard',
-            history: ['dashboard'],
-            filters: {
-                tools: { search: '', status: '' },
-                clients: { search: '' },
-                activeRentals: { search: '', status: '' },
-                bookings: { search: '' },
-                history: { search: '', filter: 'all', dateFrom: '', dateTo: '' }
-            },
-            pagination: {
-                tools: { page: 1, perPage: 10 },
-                clients: { page: 1, perPage: 10 },
-                activeRentals: { page: 1, perPage: 10 },
-                bookings: { page: 1, perPage: 10 },
-                history: { page: 1, perPage: 10 }
-            },
-            sort: {
-                tools: { field: 'model', order: 'asc' },
-                clients: { field: 'name', order: 'asc' },
-                activeRentals: { field: 'issue_date', order: 'desc' },
-                bookings: { field: 'issue_date', order: 'desc' },
-                history: { field: 'created_at', order: 'desc' }
-            },
-            darkMode: false
-        };
+        // ----- Навигация (простой стек) -----
+        let historyStack = ['dashboard'];
+        let currentPage = 'dashboard';
 
-        // ============================================================
-        // НАВИГАЦИЯ
-        // ============================================================
-        function navigate(page, pushHistory = true) {
-            if (pushHistory && state.history[state.history.length - 1] !== page) {
-                state.history.push(page);
+        function navigate(page) {
+            if (page !== currentPage) {
+                historyStack.push(page);
+                currentPage = page;
             }
-            state.currentPage = page;
+            // Активная ссылка
             document.querySelectorAll('#navList .nav-link').forEach(el => el.classList.remove('active'));
-            const link = document.querySelector(`#navList .nav-link[data-page="${page}"]`);
+            const link = document.querySelector(`#navList .nav-link[onclick*="navigate('${page}')"]`);
             if (link) link.classList.add('active');
-            renderCurrentPage();
-        }
 
-        function goBack() {
-            if (state.history.length > 1) {
-                state.history.pop();
-                const prev = state.history[state.history.length - 1];
-                state.currentPage = prev;
-                renderCurrentPage();
-                document.querySelectorAll('#navList .nav-link').forEach(el => el.classList.remove('active'));
-                const link = document.querySelector(`#navList .nav-link[data-page="${prev}"]`);
-                if (link) link.classList.add('active');
-            } else {
-                navigate('dashboard');
-            }
-        }
-
-        // Делаем функции глобальными для вызова из data-action и меню
-        window.navigate = navigate;
-        window.goBack = goBack;
-
-        // ============================================================
-        // ОСНОВНОЙ РЕНДЕР
-        // ============================================================
-        function renderCurrentPage() {
             const container = document.getElementById('appContent');
             container.classList.remove('fade-enter-active');
             container.classList.add('fade-enter');
-            switch (state.currentPage) {
+
+            switch (page) {
                 case 'dashboard':       renderDashboard(container); break;
                 case 'tools':           renderTools(container); break;
                 case 'clients':         renderClients(container); break;
@@ -421,121 +363,32 @@
                 case 'history':         renderHistory(container); break;
                 default: renderDashboard(container);
             }
+
             requestAnimationFrame(() => {
                 container.classList.remove('fade-enter');
                 container.classList.add('fade-enter-active');
             });
         }
 
+        function goBack() {
+            if (historyStack.length > 1) {
+                historyStack.pop();
+                const prev = historyStack[historyStack.length - 1];
+                currentPage = prev;
+                navigate(prev);
+            } else {
+                navigate('dashboard');
+            }
+        }
+
+        // Делаем глобальными
+        window.navigate = navigate;
+        window.goBack = goBack;
+
+        // ----- Рендер-функции -----
         function render(container, html) {
             container.innerHTML = html;
         }
-
-        // ============================================================
-        // ВСПОМОГАТЕЛЬНЫЕ ДЛЯ ПАГИНАЦИИ И СОРТИРОВКИ
-        // ============================================================
-        function applyPaginationAndSort(items, pageKey) {
-            const sort = state.sort[pageKey];
-            const pag = state.pagination[pageKey];
-            if (!sort || !pag) return { items, total: items.length, page: 1, perPage: 10, totalPages: 1 };
-            const sorted = [...items].sort((a, b) => {
-                let valA = a[sort.field] || '';
-                let valB = b[sort.field] || '';
-                if (typeof valA === 'string') valA = valA.toLowerCase();
-                if (typeof valB === 'string') valB = valB.toLowerCase();
-                if (valA < valB) return sort.order === 'asc' ? -1 : 1;
-                if (valA > valB) return sort.order === 'asc' ? 1 : -1;
-                return 0;
-            });
-            const start = (pag.page - 1) * pag.perPage;
-            const end = start + pag.perPage;
-            const paginated = sorted.slice(start, end);
-            return {
-                items: paginated,
-                total: items.length,
-                page: pag.page,
-                perPage: pag.perPage,
-                totalPages: Math.ceil(items.length / pag.perPage)
-            };
-        }
-
-        // ============================================================
-        // ДЕЛЕГИРОВАНИЕ СОБЫТИЙ
-        // ============================================================
-        document.getElementById('appContent').addEventListener('click', function(e) {
-            const target = e.target.closest('[data-action]');
-            if (!target) return;
-            const action = target.dataset.action;
-            const param = target.dataset.param || '';
-            if (typeof window[action] === 'function') {
-                window[action](param);
-            } else {
-                console.warn('Action not found:', action);
-            }
-        });
-
-        document.getElementById('appContent').addEventListener('input', function(e) {
-            const target = e.target;
-            if (target.dataset.filter) {
-                const [page, field] = target.dataset.filter.split('.');
-                if (state.filters[page]) {
-                    state.filters[page][field] = target.value;
-                    if (state.pagination[page]) state.pagination[page].page = 1;
-                    renderCurrentPage();
-                }
-            }
-            if (target.dataset.dateRange) {
-                const [page, field] = target.dataset.dateRange.split('.');
-                if (state.filters[page]) {
-                    state.filters[page][field] = target.value;
-                    if (state.pagination[page]) state.pagination[page].page = 1;
-                    renderCurrentPage();
-                }
-            }
-        });
-
-        document.getElementById('appContent').addEventListener('change', function(e) {
-            const target = e.target;
-            if (target.dataset.filter) {
-                const [page, field] = target.dataset.filter.split('.');
-                if (state.filters[page]) {
-                    state.filters[page][field] = target.value;
-                    if (state.pagination[page]) state.pagination[page].page = 1;
-                    renderCurrentPage();
-                }
-            }
-            if (target.dataset.sort) {
-                const [page, field] = target.dataset.sort.split('.');
-                const current = state.sort[page];
-                if (current.field === field) {
-                    current.order = current.order === 'asc' ? 'desc' : 'asc';
-                } else {
-                    current.field = field;
-                    current.order = 'asc';
-                }
-                renderCurrentPage();
-            }
-            if (target.dataset.perPage) {
-                const [page, value] = target.dataset.perPage.split('.');
-                if (state.pagination[page]) {
-                    state.pagination[page].perPage = parseInt(value) || 10;
-                    state.pagination[page].page = 1;
-                    renderCurrentPage();
-                }
-            }
-        });
-
-        // Обработчик клика по пунктам меню (использует глобальную navigate)
-        document.querySelector('#navList').addEventListener('click', function(e) {
-            const link = e.target.closest('.nav-link');
-            if (!link) return;
-            const page = link.dataset.page;
-            if (page) navigate(page);
-        });
-
-        // ============================================================
-        // СТРАНИЦЫ РЕНДЕРИНГА
-        // ============================================================
 
         // ---------- ДАШБОРД ----------
         function renderDashboard(container) {
@@ -597,7 +450,7 @@
                         <div class="card-body">
                             <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Просрочено: ${overdue.length}</h5>
                             <p class="small mb-0">${overdue.map(r => { const c = getClientById(r.client_id); const t = getToolById(r.tool_id); return `${c ? c.name : '—'} (${t ? t.model : '—'})`; }).join(', ')}</p>
-                            <button class="btn btn-sm btn-light mt-2" data-action="navigate" data-param="activeRentals">Посмотреть</button>
+                            <button class="btn btn-sm btn-light mt-2" onclick="navigate('activeRentals')">Посмотреть</button>
                         </div>
                     </div>
                 </div>
@@ -608,7 +461,7 @@
                         <div class="card-body">
                             <h5><i class="bi bi-clock-history me-2"></i>Скоро возврат: ${returningSoon.length}</h5>
                             <p class="small mb-0">${returningSoon.map(r => { const c = getClientById(r.client_id); const t = getToolById(r.tool_id); return `${c ? c.name : '—'} (${t ? t.model : '—'})`; }).join(', ')}</p>
-                            <button class="btn btn-sm btn-dark mt-2" data-action="navigate" data-param="activeRentals">Посмотреть</button>
+                            <button class="btn btn-sm btn-dark mt-2" onclick="navigate('activeRentals')">Посмотреть</button>
                         </div>
                     </div>
                 </div>
@@ -657,9 +510,9 @@
                         <div class="card-body">
                             <h5>Быстрые действия</h5>
                             <div class="d-grid gap-2">
-                                <button class="btn btn-primary" data-action="navigate" data-param="newRental">➕ Выдать инструмент</button>
-                                <button class="btn btn-warning" data-action="navigate" data-param="returnRental">↩️ Принять возврат</button>
-                                <button class="btn btn-info" data-action="navigate" data-param="bookings">📅 Посмотреть брони</button>
+                                <button class="btn btn-primary" onclick="navigate('newRental')">➕ Выдать инструмент</button>
+                                <button class="btn btn-warning" onclick="navigate('returnRental')">↩️ Принять возврат</button>
+                                <button class="btn btn-info" onclick="navigate('bookings')">📅 Посмотреть брони</button>
                             </div>
                         </div>
                     </div>
@@ -671,7 +524,7 @@
                 <div class="chart-bar">
                     ${chartData.map(d => `
                     <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                        <div class="chart-bar-item" style="height: ${(d.revenue / maxRevenue) * 100}%; min-height: 6px; background: ${d.revenue > 0 ? '#0d6efd' : '#e9ecef'};" data-action="showDayDetails" data-param="${d.date}">
+                        <div class="chart-bar-item" style="height: ${(d.revenue / maxRevenue) * 100}%; min-height: 6px; background: ${d.revenue > 0 ? '#0d6efd' : '#e9ecef'};" onclick="showDayDetails('${d.date}')">
                             <span class="tooltip-text">${d.revenue} ₽</span>
                         </div>
                         <div class="chart-label">${formatDateShort(d.date)}</div>
@@ -711,62 +564,19 @@
 
         // ---------- ИНСТРУМЕНТЫ ----------
         function renderTools(container) {
-            const filters = state.filters.tools;
-            let filtered = tools;
-            if (filters.search) {
-                const s = filters.search.toLowerCase();
-                filtered = filtered.filter(t => t.model?.toLowerCase().includes(s) || t.inventory_number?.toLowerCase().includes(s) || t.category?.toLowerCase().includes(s));
-            }
-            if (filters.status) filtered = filtered.filter(t => t.status === filters.status);
-
-            const pagResult = applyPaginationAndSort(filtered, 'tools');
-            const { items, total, page, perPage, totalPages } = pagResult;
-
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1><i class="bi bi-hammer me-2"></i>Инструменты</h1>
                 <div>
-                    <button class="btn btn-secondary btn-sm me-2" data-action="goBack" data-tooltip="Назад"><i class="bi bi-arrow-left"></i> Назад</button>
-                    <button class="btn btn-primary" data-action="addTool" data-tooltip="Добавить новый инструмент">➕ Добавить</button>
-                </div>
-            </div>
-            <div class="filter-section">
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" placeholder="Поиск по модели, инв. № или категории" data-filter="tools.search" value="${filters.search}">
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select" data-filter="tools.status">
-                            <option value="">Все статусы</option>
-                            <option value="в наличии" ${filters.status === 'в наличии' ? 'selected' : ''}>В наличии</option>
-                            <option value="в аренде" ${filters.status === 'в аренде' ? 'selected' : ''}>В аренде</option>
-                            <option value="забронирован" ${filters.status === 'забронирован' ? 'selected' : ''}>Забронирован</option>
-                            <option value="на обслуживании" ${filters.status === 'на обслуживании' ? 'selected' : ''}>На ТО</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" data-perPage="tools">
-                            <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
-                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
-                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25</option>
-                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
-                        </select>
-                    </div>
+                    <button class="btn btn-secondary btn-sm me-2" onclick="goBack()" data-tooltip="Назад"><i class="bi bi-arrow-left"></i> Назад</button>
+                    <button class="btn btn-primary" onclick="addTool()" data-tooltip="Добавить новый инструмент">➕ Добавить</button>
                 </div>
             </div>
             <div class="table-responsive"><table class="table table-hover table-tools">
-                <thead><tr>
-                    <th data-sort="tools.inventory_number" style="cursor:pointer;">Инв. № <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="tools.category" style="cursor:pointer;">Категория <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="tools.model" style="cursor:pointer;">Модель <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="tools.price_per_day" style="cursor:pointer;">Цена/сутки <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="tools.deposit" style="cursor:pointer;">Залог <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="tools.status" style="cursor:pointer;">Статус <i class="bi bi-arrow-up"></i></th>
-                    <th>Действия</th>
-                </tr></thead>
+                <thead><tr><th>Инв. №</th><th>Категория</th><th>Модель</th><th>Цена/сутки</th><th>Залог</th><th>Статус</th><th>Действия</th></tr></thead>
                 <tbody>
-                ${items.length === 0 ? '<tr><td colspan="7" class="text-center text-muted">Нет инструментов</td></tr>' : 
-                    items.map(t => `
+                ${tools.length === 0 ? '<tr><td colspan="7" class="text-center text-muted">Нет инструментов</td></tr>' : 
+                    tools.map(t => `
                         <tr>
                             <td><strong>${t.inventory_number || '—'}</strong></td>
                             <td>${t.category || '—'}</td>
@@ -775,109 +585,197 @@
                             <td>${t.deposit || 0} ₽</td>
                             <td><span class="badge bg-${getStatusColor(t.status)} rental-badge">${t.status || '—'}</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary btn-edit" data-action="editTool" data-param="${t.id}" data-tooltip="Редактировать">✎</button>
-                                <button class="btn btn-sm btn-outline-danger" data-action="deleteTool" data-param="${t.id}" data-tooltip="Удалить">✕</button>
+                                <button class="btn btn-sm btn-outline-primary btn-edit" onclick="editTool('${t.id}')" data-tooltip="Редактировать">✎</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteTool('${t.id}')" data-tooltip="Удалить">✕</button>
                             </td>
                         </tr>
                     `).join('')
                 }
-                </tbody></table></div>
-            ${totalPages > 1 ? `
-            <nav><ul class="pagination">
-                <li class="page-item ${page === 1 ? 'disabled' : ''}"><button class="page-link" data-action="pageTools" data-param="${page-1}">Назад</button></li>
-                ${Array.from({length: totalPages}, (_, i) => i+1).map(p => `
-                    <li class="page-item ${p === page ? 'active' : ''}"><button class="page-link" data-action="pageTools" data-param="${p}">${p}</button></li>
-                `).join('')}
-                <li class="page-item ${page === totalPages ? 'disabled' : ''}"><button class="page-link" data-action="pageTools" data-param="${page+1}">Вперёд</button></li>
-            </ul></nav>
-            ` : ''}
-            `;
+                </tbody></table></div>`;
             render(container, html);
         }
 
-        window.pageTools = function(page) { state.pagination.tools.page = parseInt(page); renderCurrentPage(); };
-        window.addTool = function() { window._addTool(); };
-        window.editTool = function(id) { window._editTool(id); };
-        window.deleteTool = function(id) { window._deleteTool(id); };
+        window.addTool = function() {
+            const container = document.getElementById('appContent');
+            render(container, `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Добавить инструмент</h1>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="saveTool(event)">
+                <div class="mb-3"><label>Инв. номер</label><input id="fInv" class="form-control" required /></div>
+                <div class="mb-3"><label>Категория</label><input id="fCat" class="form-control" required /></div>
+                <div class="mb-3"><label>Модель</label><input id="fModel" class="form-control" required /></div>
+                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" required /></div>
+                <div class="mb-3"><label>Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" required /></div>
+                <input type="hidden" id="fEditId" value="" />
+                <button type="submit" class="btn btn-success">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window.editTool = function(id) {
+            const tool = getToolById(id);
+            if (!tool) return;
+            const container = document.getElementById('appContent');
+            render(container, `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Редактировать инструмент</h1>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="saveTool(event)">
+                <div class="mb-3"><label>Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventory_number || ''}" required /></div>
+                <div class="mb-3"><label>Категория</label><input id="fCat" class="form-control" value="${tool.category || ''}" required /></div>
+                <div class="mb-3"><label>Модель</label><input id="fModel" class="form-control" value="${tool.model || ''}" required /></div>
+                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.price_per_day || 0}" required /></div>
+                <div class="mb-3"><label>Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" value="${tool.deposit || 0}" required /></div>
+                <input type="hidden" id="fEditId" value="${id}" />
+                <button type="submit" class="btn btn-success">Обновить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window.saveTool = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('fEditId').value;
+            const data = {
+                inventory_number: document.getElementById('fInv').value.trim(),
+                category: document.getElementById('fCat').value.trim(),
+                model: document.getElementById('fModel').value.trim(),
+                price_per_day: parseFloat(document.getElementById('fPrice').value) || 0,
+                deposit: parseFloat(document.getElementById('fDeposit').value) || 0,
+            };
+            showSpinner();
+            if (id) {
+                const { error } = await supabase.from('tools').update(data).eq('id', id);
+                if (error) { showToast('Ошибка: ' + error.message, 'danger'); hideSpinner(); return; }
+            } else {
+                const newTool = { id: genId(), ...data, status: 'в наличии', repair_reason: '', repair_date: null };
+                const { error } = await supabase.from('tools').insert(newTool);
+                if (error) { showToast('Ошибка: ' + error.message, 'danger'); hideSpinner(); return; }
+            }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Сохранено', 'success');
+            navigate('tools');
+        };
+
+        window.deleteTool = async function(id) {
+            if (!confirm('Удалить?')) return;
+            showSpinner();
+            const { error } = await supabase.from('tools').delete().eq('id', id);
+            if (error) { showToast('Ошибка: ' + error.message, 'danger'); hideSpinner(); return; }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Удалено', 'success');
+            navigate('tools');
+        };
 
         // ---------- КЛИЕНТЫ ----------
         function renderClients(container) {
-            const filters = state.filters.clients;
-            let filtered = clients;
-            if (filters.search) {
-                const s = filters.search.toLowerCase();
-                filtered = filtered.filter(c => c.name?.toLowerCase().includes(s) || c.phone?.includes(s) || c.email?.toLowerCase().includes(s));
-            }
-            const pagResult = applyPaginationAndSort(filtered, 'clients');
-            const { items, total, page, perPage, totalPages } = pagResult;
-
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1><i class="bi bi-people me-2"></i>Клиенты</h1>
                 <div>
-                    <button class="btn btn-secondary btn-sm me-2" data-action="goBack" data-tooltip="Назад"><i class="bi bi-arrow-left"></i> Назад</button>
-                    <button class="btn btn-primary" data-action="addClient" data-tooltip="Добавить нового клиента">➕ Добавить</button>
-                </div>
-            </div>
-            <div class="filter-section">
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" placeholder="Поиск по имени, телефону или email" data-filter="clients.search" value="${filters.search}">
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" data-perPage="clients">
-                            <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
-                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
-                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25</option>
-                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
-                        </select>
-                    </div>
+                    <button class="btn btn-secondary btn-sm me-2" onclick="goBack()" data-tooltip="Назад"><i class="bi bi-arrow-left"></i> Назад</button>
+                    <button class="btn btn-primary" onclick="addClient()" data-tooltip="Добавить нового клиента">➕ Добавить</button>
                 </div>
             </div>
             <div class="table-responsive"><table class="table table-hover">
-                <thead><tr>
-                    <th data-sort="clients.name" style="cursor:pointer;">Имя <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="clients.phone" style="cursor:pointer;">Телефон <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="clients.email" style="cursor:pointer;">Email <i class="bi bi-arrow-up"></i></th>
-                    <th>Аренд</th>
-                    <th>Действия</th>
-                </tr></thead>
+                <thead><tr><th>Имя</th><th>Телефон</th><th>Email</th><th>Аренд</th><th>Действия</th></tr></thead>
                 <tbody>
-                ${items.length === 0 ? '<tr><td colspan="5" class="text-center text-muted">Нет клиентов</td></tr>' : 
-                    items.map(c => {
+                ${clients.length === 0 ? '<tr><td colspan="5" class="text-center text-muted">Нет клиентов</td></tr>' : 
+                    clients.map(c => {
                         const count = rentals.filter(r => r.client_id === c.id).length;
                         return `<tr><td><strong>${c.name || '—'}</strong></td><td>${c.phone || '—'}</td><td>${c.email || '—'}</td><td>${count}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-info btn-edit" data-action="showClientHistory" data-param="${c.id}" data-tooltip="История аренд клиента">📋</button>
-                                <button class="btn btn-sm btn-outline-primary btn-edit" data-action="editClient" data-param="${c.id}" data-tooltip="Редактировать">✎</button>
-                                <button class="btn btn-sm btn-outline-danger" data-action="deleteClient" data-param="${c.id}" data-tooltip="Удалить">✕</button>
+                                <button class="btn btn-sm btn-outline-info btn-edit" onclick="showClientHistory('${c.id}')" data-tooltip="История аренд клиента">📋</button>
+                                <button class="btn btn-sm btn-outline-primary btn-edit" onclick="editClient('${c.id}')" data-tooltip="Редактировать">✎</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteClient('${c.id}')" data-tooltip="Удалить">✕</button>
                             </td></tr>`;
                     }).join('')
                 }
-                </tbody></table></div>
-            ${totalPages > 1 ? `
-            <nav><ul class="pagination">
-                <li class="page-item ${page === 1 ? 'disabled' : ''}"><button class="page-link" data-action="pageClients" data-param="${page-1}">Назад</button></li>
-                ${Array.from({length: totalPages}, (_, i) => i+1).map(p => `
-                    <li class="page-item ${p === page ? 'active' : ''}"><button class="page-link" data-action="pageClients" data-param="${p}">${p}</button></li>
-                `).join('')}
-                <li class="page-item ${page === totalPages ? 'disabled' : ''}"><button class="page-link" data-action="pageClients" data-param="${page+1}">Вперёд</button></li>
-            </ul></nav>
-            ` : ''}
-            `;
+                </tbody></table></div>`;
             render(container, html);
         }
 
-        window.pageClients = function(page) { state.pagination.clients.page = parseInt(page); renderCurrentPage(); };
-        window.addClient = function() { window._addClient(); };
-        window.editClient = function(id) { window._editClient(id); };
-        window.deleteClient = function(id) { window._deleteClient(id); };
-        window.showClientHistory = function(clientId) {
-            window._showClientHistory(clientId);
+        window.addClient = function() {
+            const container = document.getElementById('appContent');
+            render(container, `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Добавить клиента</h1>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="saveClient(event)">
+                <div class="mb-3"><label>ФИО</label><input id="fName" class="form-control" required /></div>
+                <div class="mb-3"><label>Телефон</label><input id="fPhone" class="form-control" required /></div>
+                <div class="mb-3"><label>Email</label><input id="fEmail" class="form-control" /></div>
+                <input type="hidden" id="fEditClientId" value="" />
+                <button type="submit" class="btn btn-success">Сохранить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
+            </form>
+            `);
         };
 
-        // Переопределяем _showClientHistory для использования новой навигации
-        window._showClientHistory = function(clientId) {
+        window.editClient = function(id) {
+            const client = getClientById(id);
+            if (!client) return;
+            const container = document.getElementById('appContent');
+            render(container, `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>Редактировать клиента</h1>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
+            </div>
+            <form onsubmit="saveClient(event)">
+                <div class="mb-3"><label>ФИО</label><input id="fName" class="form-control" value="${client.name || ''}" required /></div>
+                <div class="mb-3"><label>Телефон</label><input id="fPhone" class="form-control" value="${client.phone || ''}" required /></div>
+                <div class="mb-3"><label>Email</label><input id="fEmail" class="form-control" value="${client.email || ''}" /></div>
+                <input type="hidden" id="fEditClientId" value="${id}" />
+                <button type="submit" class="btn btn-success">Обновить</button>
+                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
+            </form>
+            `);
+        };
+
+        window.saveClient = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('fEditClientId').value;
+            const data = {
+                name: document.getElementById('fName').value.trim(),
+                phone: document.getElementById('fPhone').value.trim(),
+                email: document.getElementById('fEmail').value.trim()
+            };
+            showSpinner();
+            if (id) {
+                const { error } = await supabase.from('clients').update(data).eq('id', id);
+                if (error) { showToast('Ошибка: ' + error.message, 'danger'); hideSpinner(); return; }
+            } else {
+                const newClient = { id: genId(), ...data };
+                const { error } = await supabase.from('clients').insert(newClient);
+                if (error) { showToast('Ошибка: ' + error.message, 'danger'); hideSpinner(); return; }
+            }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Сохранено', 'success');
+            navigate('clients');
+        };
+
+        window.deleteClient = async function(id) {
+            if (!confirm('Удалить?')) return;
+            const hasActive = rentals.some(r => r.client_id === id && (r.status === 'активна' || r.status === 'забронирована'));
+            if (hasActive) { showToast('Есть активные аренды', 'danger'); return; }
+            showSpinner();
+            const { error } = await supabase.from('clients').delete().eq('id', id);
+            if (error) { showToast('Ошибка: ' + error.message, 'danger'); hideSpinner(); return; }
+            await refreshAllData();
+            hideSpinner();
+            showToast('Удалено', 'success');
+            navigate('clients');
+        };
+
+        window.showClientHistory = function(clientId) {
             const client = getClientById(clientId);
             if (!client) return;
             const clientRentals = rentals.filter(r => r.client_id === clientId).sort((a, b) => (b.id || '').localeCompare(a.id || ''));
@@ -885,7 +783,7 @@
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1>История аренд: ${client.name}</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
             </div>
             <p><strong>Телефон:</strong> ${client.phone || '—'} &nbsp; <strong>Email:</strong> ${client.email || '—'}</p>
             <div class="table-responsive"><table class="table table-striped table-hover">
@@ -913,7 +811,6 @@
                 }
                 </tbody></table></div>`;
             render(container, html);
-            state.history.push('clientHistory');
         };
 
         // ---------- ВЫДАТЬ ----------
@@ -929,16 +826,16 @@
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1><i class="bi bi-plus-circle me-2"></i>Оформить аренду</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
             </div>
-            <form onsubmit="window._saveRental(event)">
+            <form onsubmit="saveRental(event)">
                 <div class="mb-3">
                     <label>Клиент</label>
                     <select id="rClient" class="form-select" required>
                         <option value="">— Выберите —</option>
                         ${clientOpts}
                     </select>
-                    <small><a href="#" onclick="window._addClient(); return false;">➕ Добавить нового</a></small>
+                    <small><a href="#" onclick="addClient(); return false;">➕ Добавить нового</a></small>
                 </div>
                 <div class="mb-3">
                     <label>Инструмент</label>
@@ -961,162 +858,7 @@
             render(container, html);
         }
 
-        window._addClient = function() {
-            const container = document.getElementById('appContent');
-            render(container, `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1>Добавить клиента</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
-            </div>
-            <form onsubmit="window._saveClient(event)">
-                <div class="mb-3"><label>ФИО</label><input id="fName" class="form-control" required /></div>
-                <div class="mb-3"><label>Телефон</label><input id="fPhone" class="form-control" required /></div>
-                <div class="mb-3"><label>Email</label><input id="fEmail" class="form-control" /></div>
-                <input type="hidden" id="fEditClientId" value="" />
-                <button type="submit" class="btn btn-success">Сохранить</button>
-                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
-            </form>
-            `);
-        };
-
-        window._editClient = function(id) {
-            const client = getClientById(id);
-            if (!client) return;
-            const container = document.getElementById('appContent');
-            render(container, `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1>Редактировать клиента</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
-            </div>
-            <form onsubmit="window._saveClient(event)">
-                <div class="mb-3"><label>ФИО</label><input id="fName" class="form-control" value="${client.name || ''}" required /></div>
-                <div class="mb-3"><label>Телефон</label><input id="fPhone" class="form-control" value="${client.phone || ''}" required /></div>
-                <div class="mb-3"><label>Email</label><input id="fEmail" class="form-control" value="${client.email || ''}" /></div>
-                <input type="hidden" id="fEditClientId" value="${id}" />
-                <button type="submit" class="btn btn-success">Обновить</button>
-                <button type="button" class="btn btn-secondary" onclick="navigate('clients')">Отмена</button>
-            </form>
-            `);
-        };
-
-        window._saveClient = async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('fEditClientId').value;
-            const data = {
-                name: document.getElementById('fName').value.trim(),
-                phone: document.getElementById('fPhone').value.trim(),
-                email: document.getElementById('fEmail').value.trim()
-            };
-            showSpinner();
-            if (id) {
-                const { error } = await supabase.from('clients').update(data).eq('id', id);
-                if (error) { showToast('Ошибка обновления: ' + error.message, 'danger'); hideSpinner(); return; }
-            } else {
-                const newClient = { id: genId(), ...data };
-                const { error } = await supabase.from('clients').insert(newClient);
-                if (error) { showToast('Ошибка добавления: ' + error.message, 'danger'); hideSpinner(); return; }
-            }
-            await refreshAllData();
-            hideSpinner();
-            showToast('Клиент сохранён', 'success');
-            navigate('clients');
-        };
-
-        window._deleteClient = async function(id) {
-            if (!confirm('Удалить клиента?')) return;
-            const hasActive = rentals.some(r => r.client_id === id && (r.status === 'активна' || r.status === 'забронирована'));
-            if (hasActive) {
-                showToast('Нельзя удалить клиента с активной арендой или броней', 'danger');
-                return;
-            }
-            showSpinner();
-            const { error } = await supabase.from('clients').delete().eq('id', id);
-            if (error) { showToast('Ошибка удаления: ' + error.message, 'danger'); hideSpinner(); return; }
-            await refreshAllData();
-            hideSpinner();
-            showToast('Клиент удалён', 'success');
-            navigate('clients');
-        };
-
-        window._addTool = function() {
-            const container = document.getElementById('appContent');
-            render(container, `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1>Добавить инструмент</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
-            </div>
-            <form onsubmit="window._saveTool(event)">
-                <div class="mb-3"><label>Инв. номер</label><input id="fInv" class="form-control" required /></div>
-                <div class="mb-3"><label>Категория</label><input id="fCat" class="form-control" required /></div>
-                <div class="mb-3"><label>Модель</label><input id="fModel" class="form-control" required /></div>
-                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" required /></div>
-                <div class="mb-3"><label>Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" required /></div>
-                <input type="hidden" id="fEditId" value="" />
-                <button type="submit" class="btn btn-success">Сохранить</button>
-                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
-            </form>
-            `);
-        };
-
-        window._editTool = function(id) {
-            const tool = getToolById(id);
-            if (!tool) return;
-            const container = document.getElementById('appContent');
-            render(container, `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1>Редактировать инструмент</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
-            </div>
-            <form onsubmit="window._saveTool(event)">
-                <div class="mb-3"><label>Инв. номер</label><input id="fInv" class="form-control" value="${tool.inventory_number || ''}" required /></div>
-                <div class="mb-3"><label>Категория</label><input id="fCat" class="form-control" value="${tool.category || ''}" required /></div>
-                <div class="mb-3"><label>Модель</label><input id="fModel" class="form-control" value="${tool.model || ''}" required /></div>
-                <div class="mb-3"><label>Цена за сутки (₽)</label><input id="fPrice" type="number" step="0.01" class="form-control" value="${tool.price_per_day || 0}" required /></div>
-                <div class="mb-3"><label>Залог (₽)</label><input id="fDeposit" type="number" step="0.01" class="form-control" value="${tool.deposit || 0}" required /></div>
-                <input type="hidden" id="fEditId" value="${id}" />
-                <button type="submit" class="btn btn-success">Обновить</button>
-                <button type="button" class="btn btn-secondary" onclick="navigate('tools')">Отмена</button>
-            </form>
-            `);
-        };
-
-        window._saveTool = async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('fEditId').value;
-            const data = {
-                inventory_number: document.getElementById('fInv').value.trim(),
-                category: document.getElementById('fCat').value.trim(),
-                model: document.getElementById('fModel').value.trim(),
-                price_per_day: parseFloat(document.getElementById('fPrice').value) || 0,
-                deposit: parseFloat(document.getElementById('fDeposit').value) || 0,
-            };
-            showSpinner();
-            if (id) {
-                const { error } = await supabase.from('tools').update(data).eq('id', id);
-                if (error) { showToast('Ошибка обновления: ' + error.message, 'danger'); hideSpinner(); return; }
-            } else {
-                const newTool = { id: genId(), ...data, status: 'в наличии', repair_reason: '', repair_date: null };
-                const { error } = await supabase.from('tools').insert(newTool);
-                if (error) { showToast('Ошибка добавления: ' + error.message, 'danger'); hideSpinner(); return; }
-            }
-            await refreshAllData();
-            hideSpinner();
-            showToast('Сохранено успешно', 'success');
-            navigate('tools');
-        };
-
-        window._deleteTool = async function(id) {
-            if (!confirm('Удалить инструмент?')) return;
-            showSpinner();
-            const { error } = await supabase.from('tools').delete().eq('id', id);
-            if (error) { showToast('Ошибка удаления: ' + error.message, 'danger'); hideSpinner(); return; }
-            await refreshAllData();
-            hideSpinner();
-            showToast('Инструмент удалён', 'success');
-            navigate('tools');
-        };
-
-        window._saveRental = async function(e) {
+        window.saveRental = async function(e) {
             e.preventDefault();
             const clientId = document.getElementById('rClient').value;
             const toolId = document.getElementById('rTool').value;
@@ -1125,19 +867,15 @@
             const comment = document.getElementById('rComment').value.trim();
             const reserve = document.getElementById('rReserve').checked;
 
-            if (!clientId) { showToast('Выберите клиента', 'danger'); return; }
-            if (!toolId) { showToast('Выберите инструмент', 'danger'); return; }
-
+            if (!clientId || !toolId) { showToast('Заполните все поля', 'danger'); return; }
             const tool = getToolById(toolId);
             if (!tool || (tool.status !== 'в наличии' && tool.status !== 'забронирован')) {
                 showToast('Инструмент недоступен', 'danger');
                 return;
             }
-            if (tool.status === 'забронирован' && tool.reserved_until) {
-                if (new Date(tool.reserved_until) < new Date(issueDate)) {
-                    showToast('Бронь на этот инструмент истекла. Обновите страницу.', 'danger');
-                    return;
-                }
+            if (tool.status === 'забронирован' && tool.reserved_until && new Date(tool.reserved_until) < new Date(issueDate)) {
+                showToast('Бронь истекла', 'danger');
+                return;
             }
 
             const planned = new Date(issueDate);
@@ -1166,95 +904,37 @@
 
             showSpinner();
             const { error: toolError } = await supabase.from('tools').update(toolUpdate).eq('id', toolId);
-            if (toolError) { showToast('Ошибка обновления инструмента: ' + toolError.message, 'danger'); hideSpinner(); return; }
+            if (toolError) { showToast('Ошибка: ' + toolError.message, 'danger'); hideSpinner(); return; }
             const { error: rentalError } = await supabase.from('rentals').insert(rental);
-            if (rentalError) { showToast('Ошибка создания аренды: ' + rentalError.message, 'danger'); hideSpinner(); return; }
+            if (rentalError) { showToast('Ошибка: ' + rentalError.message, 'danger'); hideSpinner(); return; }
             await refreshAllData();
             hideSpinner();
             showToast('Аренда оформлена', 'success');
             navigate('dashboard');
         };
 
-        // ---------- АКТИВНЫЕ АРЕНДЫ ----------
+        // ---------- АКТИВНЫЕ ----------
         function renderActiveRentals(container) {
-            const filters = state.filters.activeRentals;
-            let filtered = rentals.filter(r => r.status === 'активна');
-            if (filters.search) {
-                const s = filters.search.toLowerCase();
-                filtered = filtered.filter(r => {
-                    const c = getClientById(r.client_id);
-                    const t = getToolById(r.tool_id);
-                    return (c?.name?.toLowerCase().includes(s) || t?.model?.toLowerCase().includes(s) || r.rental_number?.toLowerCase().includes(s));
-                });
-            }
-            const today = new Date(todayStr());
-            if (filters.status === 'просрочена') {
-                filtered = filtered.filter(r => new Date(r.planned_return) < today);
-            } else if (filters.status === 'soon') {
-                filtered = filtered.filter(r => {
-                    const diff = daysBetween(todayStr(), r.planned_return);
-                    return diff >= 0 && diff <= 2;
-                });
-            }
-            const pagResult = applyPaginationAndSort(filtered, 'activeRentals');
-            const { items, total, page, perPage, totalPages } = pagResult;
-
+            const active = rentals.filter(r => r.status === 'активна');
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1><i class="bi bi-play-circle me-2"></i>Активные аренды</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
             </div>
-            <p class="text-muted">Всего активных: ${rentals.filter(r => r.status === 'активна').length}</p>
-            <div class="filter-section">
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" placeholder="Поиск по клиенту, инструменту или №" data-filter="activeRentals.search" value="${filters.search}">
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select" data-filter="activeRentals.status">
-                            <option value="">Все</option>
-                            <option value="активна" ${filters.status === 'активна' ? 'selected' : ''}>Активна</option>
-                            <option value="просрочена" ${filters.status === 'просрочена' ? 'selected' : ''}>Просрочена</option>
-                            <option value="soon" ${filters.status === 'soon' ? 'selected' : ''}>Скоро возврат</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" data-perPage="activeRentals">
-                            <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
-                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
-                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25</option>
-                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-outline-danger btn-sm" data-action="massCloseRentals" data-tooltip="Закрыть выбранные аренды">Закрыть выбранные</button>
-                    </div>
-                </div>
-            </div>
+            <p class="text-muted">Всего активных: ${active.length}</p>
             <div class="table-responsive"><table class="table table-striped table-hover">
                 <thead><tr>
-                    <th><input type="checkbox" id="selectAllActive" onchange="window._toggleAllActive(this.checked)"></th>
-                    <th data-sort="activeRentals.rental_number" style="cursor:pointer;">№ <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="activeRentals.client_id" style="cursor:pointer;">Клиент <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="activeRentals.tool_id" style="cursor:pointer;">Инструмент <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="activeRentals.price_per_day" style="cursor:pointer;">Цена/сутки <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="activeRentals.issue_date" style="cursor:pointer;">Выдача <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="activeRentals.planned_return" style="cursor:pointer;">План возврат <i class="bi bi-arrow-up"></i></th>
-                    <th>Дней</th>
-                    <th data-sort="activeRentals.total_cost" style="cursor:pointer;">Сумма <i class="bi bi-arrow-up"></i></th>
-                    <th>Комментарий</th>
-                    <th>Статус</th>
+                    <th>№</th><th>Клиент</th><th>Инструмент</th><th>Цена/сутки</th><th>Выдача</th><th>План возврат</th><th>Дней</th><th>Сумма</th><th>Комментарий</th><th>Статус</th>
                 </tr></thead>
                 <tbody>
-                ${items.length === 0 ? '<tr><td colspan="11" class="text-center text-muted">Нет активных аренд</td></tr>' :
-                    items.map(r => {
+                ${active.length === 0 ? '<tr><td colspan="10" class="text-center text-muted">Нет активных аренд</td></tr>' :
+                    active.map(r => {
                         const c = getClientById(r.client_id);
                         const t = getToolById(r.tool_id);
                         const days = daysBetween(r.issue_date, r.planned_return);
-                        const isOverdue = new Date(r.planned_return) < today;
+                        const isOverdue = new Date(r.planned_return) < new Date(todayStr());
                         const statusDisplay = isOverdue ? 'просрочена' : r.status;
                         return `<tr>
-                            <td><input type="checkbox" class="rental-checkbox" data-id="${r.id}"></td>
                             <td>${r.rental_number || '—'}</td>
                             <td>${c ? c.name : 'Удалён'}</td>
                             <td>${t ? t.model : 'Удалён'}</td>
@@ -1269,96 +949,26 @@
                     }).join('')
                 }
                 </tbody></table></div>
-            ${totalPages > 1 ? `
-            <nav><ul class="pagination">
-                <li class="page-item ${page === 1 ? 'disabled' : ''}"><button class="page-link" data-action="pageActiveRentals" data-param="${page-1}">Назад</button></li>
-                ${Array.from({length: totalPages}, (_, i) => i+1).map(p => `
-                    <li class="page-item ${p === page ? 'active' : ''}"><button class="page-link" data-action="pageActiveRentals" data-param="${p}">${p}</button></li>
-                `).join('')}
-                <li class="page-item ${page === totalPages ? 'disabled' : ''}"><button class="page-link" data-action="pageActiveRentals" data-param="${page+1}">Вперёд</button></li>
-            </ul></nav>
-            ` : ''}
             <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
             render(container, html);
         }
 
-        window.pageActiveRentals = function(page) { state.pagination.activeRentals.page = parseInt(page); renderCurrentPage(); };
-        window._toggleAllActive = function(checked) {
-            document.querySelectorAll('.rental-checkbox').forEach(cb => cb.checked = checked);
-        };
-        window.massCloseRentals = async function() {
-            const selected = document.querySelectorAll('.rental-checkbox:checked');
-            if (selected.length === 0) { showToast('Выберите аренды', 'warning'); return; }
-            if (!confirm(`Закрыть ${selected.length} аренд?`)) return;
-            showSpinner();
-            const ids = Array.from(selected).map(cb => cb.dataset.id);
-            const today = todayStr();
-            for (const id of ids) {
-                const rental = rentals.find(r => r.id === id);
-                if (!rental || rental.status !== 'активна') continue;
-                await supabase.from('rentals').update({
-                    actual_return: today,
-                    status: 'закрыта',
-                    return_condition: 'Закрыта массово'
-                }).eq('id', id);
-                await supabase.from('tools').update({ status: 'в наличии' }).eq('id', rental.tool_id);
-            }
-            await refreshAllData();
-            hideSpinner();
-            showToast(`Закрыто ${ids.length} аренд`, 'success');
-            navigate('activeRentals');
-        };
-
         // ---------- БРОНИ ----------
         function renderBookings(container) {
-            const filters = state.filters.bookings;
-            let filtered = rentals.filter(r => r.status === 'забронирована');
-            if (filters.search) {
-                const s = filters.search.toLowerCase();
-                filtered = filtered.filter(r => {
-                    const c = getClientById(r.client_id);
-                    const t = getToolById(r.tool_id);
-                    return (c?.name?.toLowerCase().includes(s) || t?.model?.toLowerCase().includes(s) || r.rental_number?.toLowerCase().includes(s));
-                });
-            }
-            const pagResult = applyPaginationAndSort(filtered, 'bookings');
-            const { items, total, page, perPage, totalPages } = pagResult;
-
+            const bookings = rentals.filter(r => r.status === 'забронирована');
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1><i class="bi bi-calendar-check me-2"></i>Брони</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
             </div>
-            <p class="text-muted">Всего броней: ${rentals.filter(r => r.status === 'забронирована').length}</p>
-            <div class="filter-section">
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" placeholder="Поиск по клиенту, инструменту или №" data-filter="bookings.search" value="${filters.search}">
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" data-perPage="bookings">
-                            <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
-                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
-                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25</option>
-                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
+            <p class="text-muted">Всего броней: ${bookings.length}</p>
             <div class="table-responsive"><table class="table table-striped table-hover">
                 <thead><tr>
-                    <th data-sort="bookings.rental_number" style="cursor:pointer;">№ <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="bookings.client_id" style="cursor:pointer;">Клиент <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="bookings.tool_id" style="cursor:pointer;">Инструмент <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="bookings.issue_date" style="cursor:pointer;">Выдача (с) <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="bookings.planned_return" style="cursor:pointer;">План возврат <i class="bi bi-arrow-up"></i></th>
-                    <th>Дней</th>
-                    <th data-sort="bookings.total_cost" style="cursor:pointer;">Сумма <i class="bi bi-arrow-up"></i></th>
-                    <th>Действия</th>
+                    <th>№</th><th>Клиент</th><th>Инструмент</th><th>Выдача (с)</th><th>План возврат</th><th>Дней</th><th>Сумма</th><th>Действия</th>
                 </tr></thead>
                 <tbody>
-                ${items.length === 0 ? '<tr><td colspan="8" class="text-center text-muted">Нет броней</td></tr>' :
-                    items.map(r => {
+                ${bookings.length === 0 ? '<tr><td colspan="8" class="text-center text-muted">Нет броней</td></tr>' :
+                    bookings.map(r => {
                         const c = getClientById(r.client_id);
                         const t = getToolById(r.tool_id);
                         const days = daysBetween(r.issue_date, r.planned_return);
@@ -1371,27 +981,17 @@
                             <td>${days}</td>
                             <td>${r.total_cost || 0} ₽</td>
                             <td>
-                                <button class="btn btn-sm btn-success" data-action="bookingToRental" data-param="${r.id}" data-tooltip="Перевести в аренду">➡️ В аренду</button>
-                                <button class="btn btn-sm btn-danger" data-action="cancelBooking" data-param="${r.id}" data-tooltip="Отменить бронь">✕ Отменить</button>
+                                <button class="btn btn-sm btn-success" onclick="bookingToRental('${r.id}')" data-tooltip="Перевести в аренду">➡️ В аренду</button>
+                                <button class="btn btn-sm btn-danger" onclick="cancelBooking('${r.id}')" data-tooltip="Отменить бронь">✕ Отменить</button>
                             </td>
                         </tr>`;
                     }).join('')
                 }
                 </tbody></table></div>
-            ${totalPages > 1 ? `
-            <nav><ul class="pagination">
-                <li class="page-item ${page === 1 ? 'disabled' : ''}"><button class="page-link" data-action="pageBookings" data-param="${page-1}">Назад</button></li>
-                ${Array.from({length: totalPages}, (_, i) => i+1).map(p => `
-                    <li class="page-item ${p === page ? 'active' : ''}"><button class="page-link" data-action="pageBookings" data-param="${p}">${p}</button></li>
-                `).join('')}
-                <li class="page-item ${page === totalPages ? 'disabled' : ''}"><button class="page-link" data-action="pageBookings" data-param="${page+1}">Вперёд</button></li>
-            </ul></nav>
-            ` : ''}
             <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
             render(container, html);
         }
 
-        window.pageBookings = function(page) { state.pagination.bookings.page = parseInt(page); renderCurrentPage(); };
         window.bookingToRental = async function(rentalId) {
             if (!confirm('Перевести бронь в активную аренду?')) return;
             const rental = rentals.find(r => r.id === rentalId);
@@ -1405,9 +1005,10 @@
             }
             await refreshAllData();
             hideSpinner();
-            showToast('Бронь переведена в аренду', 'success');
+            showToast('Бронь переведена', 'success');
             navigate('bookings');
         };
+
         window.cancelBooking = async function(rentalId) {
             if (!confirm('Отменить бронь?')) return;
             const rental = rentals.find(r => r.id === rentalId);
@@ -1437,7 +1038,7 @@
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1><i class="bi bi-arrow-return-left me-2"></i>Возврат инструмента</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
             </div>
             ${active.length === 0 ? '<div class="alert alert-info">Нет активных аренд.</div>' : `
             <form onsubmit="return false;">
@@ -1463,15 +1064,15 @@
                     <label class="form-check-label" for="retDepositReturned">Залог возвращён</label>
                 </div>
                 <div class="mb-3">
-                    <button type="button" class="btn btn-success" onclick="window._returnRental(false)" data-tooltip="Принять возврат">Принять возврат</button>
-                    <button type="button" class="btn btn-warning" onclick="window._returnRental(true)" data-tooltip="Отправить на ТО">Отправить на ТО</button>
+                    <button type="button" class="btn btn-success" onclick="returnRental(false)" data-tooltip="Принять возврат">Принять возврат</button>
+                    <button type="button" class="btn btn-warning" onclick="returnRental(true)" data-tooltip="Отправить на ТО">Отправить на ТО</button>
                 </div>
             </form>`}
             <button class="btn btn-secondary mt-3" onclick="navigate('dashboard')">На главную</button>`;
             render(container, html);
         }
 
-        window._returnRental = async function(sendToRepair) {
+        window.returnRental = async function(sendToRepair) {
             const rentalId = document.getElementById('retRental').value;
             const actualReturn = document.getElementById('retDate').value;
             const condition = document.getElementById('retCondition') ? document.getElementById('retCondition').value : 'Хорошее';
@@ -1511,7 +1112,7 @@
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1><i class="bi bi-wrench me-2"></i>Инструменты на ТО</h1>
-                <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
+                <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
             </div>
             ${repairTools.length === 0 ? '<div class="alert alert-info">Нет инструментов на ТО.</div>' : `
             <div class="table-responsive"><table class="table table-hover">
@@ -1523,7 +1124,7 @@
                         <td>${t.model || '—'}</td>
                         <td>${t.repair_reason || '—'}</td>
                         <td>${formatDate(t.repair_date)}</td>
-                        <td><button class="btn btn-sm btn-success" data-action="returnFromRepair" data-param="${t.id}" data-tooltip="Вернуть с ТО в наличие">Вернуть с ТО</button></td>
+                        <td><button class="btn btn-sm btn-success" onclick="returnFromRepair('${t.id}')" data-tooltip="Вернуть с ТО">Вернуть</button></td>
                     </tr>
                 `).join('')}
                 </tbody></table></div>`}
@@ -1532,13 +1133,9 @@
         }
 
         window.returnFromRepair = async function(toolId) {
-            if (!confirm('Вернуть инструмент с ТО в наличие?')) return;
+            if (!confirm('Вернуть с ТО?')) return;
             showSpinner();
-            await supabase.from('tools').update({
-                status: 'в наличии',
-                repair_reason: '',
-                repair_date: null
-            }).eq('id', toolId);
+            await supabase.from('tools').update({ status: 'в наличии', repair_reason: '', repair_date: null }).eq('id', toolId);
             await refreshAllData();
             hideSpinner();
             showToast('Инструмент возвращён с ТО', 'success');
@@ -1547,81 +1144,22 @@
 
         // ---------- ИСТОРИЯ ----------
         function renderHistory(container) {
-            const filters = state.filters.history;
-            let filtered = rentals;
-            if (filters.search) {
-                const s = filters.search.toLowerCase();
-                filtered = filtered.filter(r => {
-                    const c = getClientById(r.client_id);
-                    const t = getToolById(r.tool_id);
-                    return (c?.name?.toLowerCase().includes(s) || t?.model?.toLowerCase().includes(s) || r.rental_number?.toLowerCase().includes(s));
-                });
-            }
-            if (filters.filter === 'active') filtered = filtered.filter(r => r.status === 'активна');
-            else if (filters.filter === 'closed') filtered = filtered.filter(r => r.status === 'закрыта');
-            else if (filters.filter === 'booked') filtered = filtered.filter(r => r.status === 'забронирована');
-            if (filters.dateFrom) filtered = filtered.filter(r => r.issue_date >= filters.dateFrom);
-            if (filters.dateTo) filtered = filtered.filter(r => r.planned_return <= filters.dateTo);
-
-            const pagResult = applyPaginationAndSort(filtered, 'history');
-            const { items, total, page, perPage, totalPages } = pagResult;
-
+            const sorted = [...rentals].sort((a, b) => (b.id || '').localeCompare(a.id || ''));
             let html = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1><i class="bi bi-clock-history me-2"></i>История аренд</h1>
                 <div>
-                    <button class="btn btn-outline-success btn-sm me-2" data-action="exportCSV" data-tooltip="Экспорт в CSV">📥 CSV</button>
-                    <button class="btn btn-secondary" data-action="goBack"><i class="bi bi-arrow-left"></i> Назад</button>
-                </div>
-            </div>
-            <div class="filter-section">
-                <div class="row g-2">
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" placeholder="Поиск по клиенту, инструменту или №" data-filter="history.search" value="${filters.search}">
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" data-filter="history.filter">
-                            <option value="all" ${filters.filter === 'all' ? 'selected' : ''}>Все</option>
-                            <option value="active" ${filters.filter === 'active' ? 'selected' : ''}>Активные</option>
-                            <option value="closed" ${filters.filter === 'closed' ? 'selected' : ''}>Закрытые</option>
-                            <option value="booked" ${filters.filter === 'booked' ? 'selected' : ''}>Брони</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" data-dateRange="history.dateFrom" value="${filters.dateFrom}" placeholder="с">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" data-dateRange="history.dateTo" value="${filters.dateTo}" placeholder="по">
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" data-perPage="history">
-                            <option value="5" ${perPage === 5 ? 'selected' : ''}>5</option>
-                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10</option>
-                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25</option>
-                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50</option>
-                        </select>
-                    </div>
+                    <button class="btn btn-outline-success btn-sm me-2" onclick="exportCSV()" data-tooltip="Экспорт в CSV">📥 CSV</button>
+                    <button class="btn btn-secondary" onclick="goBack()"><i class="bi bi-arrow-left"></i> Назад</button>
                 </div>
             </div>
             <div class="table-responsive"><table class="table table-striped table-hover">
                 <thead><tr>
-                    <th data-sort="history.rental_number" style="cursor:pointer;">№ <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="history.client_id" style="cursor:pointer;">Клиент <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="history.tool_id" style="cursor:pointer;">Инструмент <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="history.issue_date" style="cursor:pointer;">Выдача <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="history.planned_return" style="cursor:pointer;">План возврат <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="history.actual_return" style="cursor:pointer;">Факт возврат <i class="bi bi-arrow-up"></i></th>
-                    <th data-sort="history.total_cost" style="cursor:pointer;">Сумма <i class="bi bi-arrow-up"></i></th>
-                    <th>Залог</th>
-                    <th>Залог возвращён</th>
-                    <th>Состояние</th>
-                    <th>Комментарий</th>
-                    <th>Статус</th>
-                    <th>Действие</th>
+                    <th>№</th><th>Клиент</th><th>Инструмент</th><th>Выдача</th><th>План возврат</th><th>Факт возврат</th><th>Сумма</th><th>Залог</th><th>Залог возвращён</th><th>Состояние</th><th>Комментарий</th><th>Статус</th>
                 </tr></thead>
                 <tbody>
-                ${items.length === 0 ? '<tr><td colspan="13" class="text-center text-muted">Нет записей</td></tr>' :
-                    items.map(r => {
+                ${sorted.length === 0 ? '<tr><td colspan="12" class="text-center text-muted">Нет записей</td></tr>' :
+                    sorted.map(r => {
                         const c = getClientById(r.client_id);
                         const t = getToolById(r.tool_id);
                         const canDelete = r.status !== 'активна' && r.status !== 'забронирована';
@@ -1638,27 +1176,15 @@
                             <td>${r.return_condition || '—'}</td>
                             <td>${r.comment || '—'}</td>
                             <td><span class="badge bg-${getStatusColor(r.status)} rental-badge">${r.status || '—'}</span></td>
-                            <td>${canDelete ? `<button class="btn btn-sm btn-outline-danger" data-action="deleteRental" data-param="${r.id}" data-tooltip="Удалить запись">🗑</button>` : '<span class="text-muted">—</span>'}</td>
                         </tr>`;
                     }).join('')
                 }
-                </tbody></table></div>
-            ${totalPages > 1 ? `
-            <nav><ul class="pagination">
-                <li class="page-item ${page === 1 ? 'disabled' : ''}"><button class="page-link" data-action="pageHistory" data-param="${page-1}">Назад</button></li>
-                ${Array.from({length: totalPages}, (_, i) => i+1).map(p => `
-                    <li class="page-item ${p === page ? 'active' : ''}"><button class="page-link" data-action="pageHistory" data-param="${p}">${p}</button></li>
-                `).join('')}
-                <li class="page-item ${page === totalPages ? 'disabled' : ''}"><button class="page-link" data-action="pageHistory" data-param="${page+1}">Вперёд</button></li>
-            </ul></nav>
-            ` : ''}
-            `;
+                </tbody></table></div>`;
             render(container, html);
         }
 
-        window.pageHistory = function(page) { state.pagination.history.page = parseInt(page); renderCurrentPage(); };
         window.exportCSV = function() {
-            if (rentals.length === 0) { showToast('Нет данных для экспорта', 'warning'); return; }
+            if (rentals.length === 0) { showToast('Нет данных', 'warning'); return; }
             let csv = '№,Клиент,Инструмент,Выдача,План возврат,Факт возврат,Цена/сутки,Сумма,Залог,Залог возвращён,Состояние,Комментарий,Статус\n';
             rentals.forEach(r => {
                 const c = getClientById(r.client_id);
@@ -1677,21 +1203,6 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
             showToast('CSV скачан', 'success');
-        };
-        window.deleteRental = async function(rentalId) {
-            if (!confirm('Удалить эту запись?')) return;
-            const rental = rentals.find(r => r.id === rentalId);
-            if (!rental) return;
-            if (rental.status === 'активна' || rental.status === 'забронирована') {
-                showToast('Нельзя удалить активную аренду или бронь', 'danger');
-                return;
-            }
-            showSpinner();
-            await supabase.from('rentals').delete().eq('id', rentalId);
-            await refreshAllData();
-            hideSpinner();
-            showToast('Запись удалена', 'success');
-            navigate('history');
         };
 
         // ============================================================
@@ -1723,7 +1234,7 @@
             const { data, error } = await supabase.auth.signUp({ email, password });
             if (error) { showToast('Ошибка регистрации: ' + error.message, 'danger'); hideSpinner(); return; }
             hideSpinner();
-            showToast('Регистрация успешна! Теперь войдите.', 'success');
+            showToast('Регистрация успешна! Войдите.', 'success');
             showLogin();
         };
 
@@ -1750,13 +1261,11 @@
         // ТЁМНАЯ ТЕМА
         // ============================================================
         function toggleDarkMode() {
-            state.darkMode = !state.darkMode;
-            document.body.classList.toggle('dark-mode', state.darkMode);
-            localStorage.setItem('darkMode', state.darkMode);
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         }
         window.toggleDarkMode = toggleDarkMode;
         if (localStorage.getItem('darkMode') === 'true') {
-            state.darkMode = true;
             document.body.classList.add('dark-mode');
         }
 
@@ -1771,7 +1280,7 @@
                 document.getElementById('mainApp').classList.remove('hidden');
                 document.getElementById('mainNav').style.display = 'flex';
                 await refreshAllData();
-                renderCurrentPage();
+                navigate('dashboard');
             } else {
                 document.getElementById('loginPage').classList.remove('hidden');
                 document.getElementById('registerPage').classList.add('hidden');
